@@ -1,27 +1,34 @@
-##Este readme fue puramente escrito en nano y subido a este repo con git desde wsl2
+# 🚀 Tarea Opcional del Día 2: #90DaysOfDevOps
 
-#Tarea Opcional del Día 2
+> *Este resumen fue escrito puramente en `nano` y subido a este repositorio con `git` desde WSL2.*
 
-##🛠️ 1. Exploración básica
-- Abrí la terminal y ejecutá estos comandos. Luego anotá qué hace cada uno:
+---
 
-*whoami*   *Muestra el nombre de Usuario*
-*pwd*   *Me muestra la ruta donde estoy*
-*ls -lah* *Muestra todos los archivos legibles*
-*df -hT*  *Se usa para revisar el espacio libre y usado en los discos o sistemas de archivos*
-*uptime*  *muestra un resumen rápido del estado y la carga del Sistema*
+## 🛠️ 1. Exploración Básica de Comandos
 
-##📂 2. Navega por los directorios clave del sistema:
+Estos son los primeros comandos ejecutados en la terminal y su función:
 
-cd /   *Se va al Root Directory*
-ls    *hace una lista de archivos del directorio donde esta* 
-cd /etc && ls *Se va al directorio etc y hace una lista*
-cd /home && ls *SE fue a home y muestra el usuario*
+* **`whoami`**: Muestra el nombre del usuario con el que estoy actualmente logueado en la terminal.
+* **`pwd`**: Imprime la ruta completa del directorio de trabajo actual (Print Working Directory).
+* **`ls -lah`**: Genera una lista detallada (`-l`) de **todos** los archivos y directorios (`-a`), incluyendo los ocultos, con los tamaños en un formato legible por humanos (`-h`).
+* **`df -hT`**: Reporta el espacio libre y usado de los sistemas de archivos, mostrando el tipo (`-T`) y los tamaños en formato legible (`-h`).
+* **`uptime`**: Muestra cuánto tiempo lleva encendido el sistema, cuántos usuarios están conectados y la carga promedio del procesador.
 
-##🧠 5. Reto de comprensión
-¿Qué hace este comando?:
+---
 
-chmod u=rwx,g=rx,o= hola.txt
+## 📂 2. Navegación por Directorios Clave
 
-Explicalo con tus palabras:
-**R** *el comando establece que para el archivo hola.txt: El propietario tiene control total (leer, escribir, ejecutar).El grupo puede leerlo y ejecutarlo. Todos los demás no tienen ningún tipo de acceso.*
+Secuencia de comandos para navegar por directorios importantes del sistema de archivos de Linux:
+
+```bash
+# Ir al directorio raíz del sistema
+cd /
+
+# Listar el contenido del directorio raíz
+ls
+
+# Ir al directorio /etc (archivos de configuración) y listar su contenido
+cd /etc && ls
+
+# Ir al directorio /home (carpetas de usuarios) y listar su contenido
+cd /home && ls
