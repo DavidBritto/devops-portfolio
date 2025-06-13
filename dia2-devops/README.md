@@ -32,3 +32,23 @@ cd /etc && ls
 
 # Ir al directorio /home (carpetas de usuarios) y listar su contenido
 cd /home && ls
+```
+---
+
+## 📂 🧠 5. Reto de Comprensión: Permisos
+Pregunta: ¿Qué hace este comando?
+
+
+```bash
+
+chmod u=rwx,g=rx,o= hola.txt
+```
+
+Mi Explicación:
+
+El comando establece que para el archivo hola.txt:
+
+El propietario **`(u)`** tiene control total (leer, escribir, ejecutar).
+El grupo **`(g)`** puede leerlo y ejecutarlo, pero no modificarlo.
+Todos los demás **`(o)`** no tienen ningún tipo de acceso.
+
