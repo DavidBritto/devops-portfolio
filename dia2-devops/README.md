@@ -1,20 +1,24 @@
-🛠️ 1. Exploración básica
+##Este readme fue puramente escrito en nano y subido a este repo con git desde wsl2
+
+#Tarea Opcional del Día 2
+
+##🛠️ 1. Exploración básica
 - Abrí la terminal y ejecutá estos comandos. Luego anotá qué hace cada uno:
 
 *whoami*   *Muestra el nombre de Usuario*
 *pwd*   *Me muestra la ruta donde estoy*
-ls -lah *Muestra todos los archivos legibles*
-df -hT  *Se usa para revisar el espacio libre y usado en los discos o sistemas de archivos*
-uptime  *muestra un resumen rápido del estado y la carga del Sistema*
+*ls -lah* *Muestra todos los archivos legibles*
+*df -hT*  *Se usa para revisar el espacio libre y usado en los discos o sistemas de archivos*
+*uptime*  *muestra un resumen rápido del estado y la carga del Sistema*
 
-📂 Navega por los directorios clave del sistema:
+##📂 2. Navega por los directorios clave del sistema:
 
 cd /   *Se va al Root Directory*
 ls    *hace una lista de archivos del directorio donde esta* 
 cd /etc && ls *Se va al directorio etc y hace una lista*
 cd /home && ls *SE fue a home y muestra el usuario*
 
-🧠 5. Reto de comprensión
+##🧠 5. Reto de comprensión
 ¿Qué hace este comando?:
 
 chmod u=rwx,g=rx,o= hola.txt
