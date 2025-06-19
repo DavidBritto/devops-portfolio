@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dia 6 ansible</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+
+    <style>
+        /*
+         * Estilos Generales y Fondo Galáctico
+         */
+        body, html {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: 'Orbitron', sans-serif; /* Usamos la fuente que importamos */
+            color: #e6e6e6;
+            background-color: #000;
+            /* Usamos una imagen de fondo de estrellas. Si el enlace se cae, puedes cambiarlo por otra URL */
+            background-image: url('https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?q=80&w=2071&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            overflow: hidden; /* Evitamos barras de scroll innecesarias */
+        }
+
+        /*
+         * Contenedor para centrar el contenido
+         */
+        .main-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            height: 100%;
+            flex-direction: column;
+            /* Un sutil fondo oscuro y semitransparente para que el texto resalte más */
+            background-color: rgba(0, 0, 0, 0.5);
+            /* Animación de aparición */
+            animation: fadeIn 3s ease-in-out;
+        }
+        
+        /*
+         * Estilos para el Título Principal
+         */
+        h1 {
+            font-size: 5rem; /* Tamaño de letra grande */
+            font-weight: 700;
+            margin: 0;
+            color: #ffe81f; /* Un amarillo muy al estilo Star Wars */
+            /* Sombra de texto para crear un efecto de brillo/resplandor */
+            text-shadow: 0 0 5px #ffe81f,
+                         0 0 10px #ffe81f,
+                         0 0 20px #ffc90e,
+                         0 0 30px #ffc90e;
+        }
+
+        /*
+         * Estilo para el subtítulo
+         */
+        p {
+            font-size: 1.5rem;
+            margin-top: 1rem;
+            letter-spacing: 2px; /* Espaciado entre letras para un look más cinemático */
+            color: #4d9eff; /* Un azul de sable de luz */
+            text-shadow: 0 0 5px #4d9eff;
+        }
+
+        /*
+         * Definición de la animación de aparición
+         */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /*
+         * Media Queries para que se vea bien en celulares
+         */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 3rem;
+            }
+            p {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <h1>¡Saludos, Roxers!</h1>
+        <h2>Automatización completada con Ansible: Nginx, usuario SSH y firewall configurados.</h2>
+        <p>Que la fuerza del deploy los acompañe.</p>
+        <p>#AnsibleConRoxs 🚀</p>
+    </div>
+
+</body>
+<footer>
+    <p>#AnsibleConRoxs 🚀</p>
+</footer>
+</html>
