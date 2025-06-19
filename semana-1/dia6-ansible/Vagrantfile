@@ -1,0 +1,20 @@
+# --- INICIO DEL VAGRANTFILE FINAL ---
+Vagrant.configure("2") do |config|
+  # --- Configuración General de la VM ---
+  config.vm.box = "ubuntu/jammy64"
+
+  # TAREA ADICIONAL: Asignar un nombre de host personalizado
+  config.vm.hostname = "servidor-web-dev"
+
+  # --- Configuración de Red ---
+  config.vm.network "private_network", ip: "192.168.33.10"
+
+  # --- Configuración del Proveedor (VirtualBox) ---
+  config.vm.provider "virtualbox" do |vb|
+    # TAREA ADICIONAL: Ajustar memoria y CPU
+    vb.memory = "2048"  # 2 GB de RAM
+    vb.cpus = "2"        # 2 núcleo de CPU
+
+  end
+
+end
