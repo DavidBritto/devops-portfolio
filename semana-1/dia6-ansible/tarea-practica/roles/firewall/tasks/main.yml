@@ -1,0 +1,19 @@
+---
+# tasks file for firewall
+- name: Permitir tráfico SSH
+  community.general.ufw:
+    rule: allow
+    name: OpenSSH
+
+- name: Permitir tráfico HTTP y HTTPS
+  community.general.ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  loop:
+    - "80"   # HTTP
+    - "443"  # HTTPS
+
+- name: Habilitar el firewall UFW
+  community.general.ufw:
+    state: enabled

@@ -1,0 +1,21 @@
+---
+# tasks file for nginx
+- name: Instalar Nginx
+  ansible.builtin.apt:
+    name: nginx
+    state: present
+    update_cache: yes
+
+- name: Copiar la página de inicio personalizada
+  ansible.builtin.copy:
+    src: index.html  # Ansible busca esto en la carpeta 'files' del rol
+    dest: /var/www/html/index.html
+    owner: www-data
+    group: www-data
+    mode: '0644'
+
+- name: Asegurar que Nginx esté iniciado y habilitado
+  ansible.builtin.service:
+    name: nginx
+    state: started
+    enabled: yes
