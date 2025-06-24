@@ -1,0 +1,9 @@
+---
+- name: Configurar servidor web con estructura de roles
+  hosts: all
+  become: yes # Ejecutar tareas como superusuario (root)
+
+  roles:
+    - nginx
+    - devops_user
+    - firewall

@@ -1,0 +1,10 @@
+---
+# tasks file for devops_user
+- name: Crear el usuario 'devops'
+  ansible.builtin.user:
+    name: devops
+    state: present
+    comment: "Usuario para tareas de DevOps"
+    shell: /bin/bash
+    groups: sudo
+    append: yes # Importante para añadir a 'sudo' sin quitar otros grupos
