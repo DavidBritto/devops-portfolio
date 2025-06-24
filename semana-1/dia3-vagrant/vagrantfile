@@ -16,8 +16,8 @@ Vagrant.configure("2") do |config|
   # --- Configuración del Proveedor (VirtualBox) ---
   config.vm.provider "virtualbox" do |vb|
     # TAREA ADICIONAL: Ajustar memoria y CPU
-    vb.memory = "1024"  # 1 GB de RAM
-    vb.cpus = "1"        # 1 núcleo de CPU
+    vb.memory = "2048"  # 2 GB de RAM
+    vb.cpus = "2"        # 2 núcleo de CPU
   end
 
   # --- Provisionamiento ---
