@@ -1,32 +1,72 @@
-# Día 6: Explorando las Capas de la Red y Herramientas de Diagnóstico
+# 🚀 Día 6: Introducción a Ansible y Automatización con Roles
 
-Hoy el desafío me sumergió en el mundo de las redes, un pilar fundamental para cualquier rol en DevOps. La jornada consistió en dejar de solo *usar* la red para empezar a *entender* cómo funciona por debajo, desde los modelos teóricos que la rigen hasta las herramientas prácticas que usamos para diagnosticarla en el día a día.
+Este documento resume las tareas y aprendizajes del Día 6 del desafío #90DaysOfDevOps. El objetivo principal fue comprender los fundamentos de Ansible y evolucionar de un playbook simple a una estructura profesional basada en roles para automatizar la configuración de un servidor.
 
-## Fundamentos Teóricos: Modelo OSI y TCP/IP
+---
 
-Antes de ejecutar comandos, dediqué tiempo a entender los principios.
-* **Modelo OSI:** Comprendí que es un mapa conceptual de 7 capas que estandariza la forma en que pensamos sobre la comunicación de redes. Es la teoría universal.
-* **Modelo TCP/IP:** Aprendí que este es el modelo práctico de 4 capas que realmente utiliza internet. Es una implementación más simple y directa del modelo OSI.
+## 🧠 Conceptos Clave Aprendidos
 
-La clave fue entender que cada herramienta que usamos opera en una o más de estas capas, desde los cables hasta la aplicación.
+-   **Infraestructura como Código (IaC):** La práctica de gestionar y aprovisionar la infraestructura a través de código, en lugar de procesos manuales.
+-   **Ansible - Agente-less:** Ansible no requiere la instalación de ningún software (agente) en los servidores que gestiona. Se comunica directamente a través de SSH, lo que simplifica enormemente su despliegue.
+-   **Idempotencia:** Una de las características más potentes de Ansible. Si una tarea ya se ha realizado (por ejemplo, un paquete ya está instalado), Ansible no volverá a ejecutarla. Solo aplica los cambios necesarios.
+-   **Componentes de Ansible:**
+    -   **Inventario:** Lista de servidores (nodos) a gestionar.
+    -   **Playbooks:** Archivos YAML que definen una serie de tareas a ejecutar. Son las "recetas" de nuestra automatización.
+    -   **Módulos:** Unidades de trabajo que realizan acciones específicas (ej: `apt` para instalar paquetes, `copy` para copiar archivos).
+    -   **Roles:** La forma profesional de organizar los playbooks en componentes reusables y especializados.
 
-## Pruebas Prácticas con Herramientas de Red
+---
 
-Puse en práctica los conceptos teóricos con las siguientes herramientas de línea de comandos en mi terminal de Ubuntu.
+## 🏗️ Parte 1: Primer Contacto - Despliegue Simple (Freelancer)
 
-### 1. Verificando Conectividad y Latencia con `ping`
-Usé `ping -c 4 google.com` para enviar 4 paquetes ICMP y confirmar que tengo conectividad con el exterior. Analicé el tiempo de respuesta (latencia) de cada paquete, una métrica fundamental para el rendimiento.
+El primer ejercicio consistió en levantar una máquina virtual con Vagrant y usar un único playbook de Ansible para instalar Nginx y desplegar una página web estática.
 
-### 2. Interactuando con Servicios Web con `curl` y `wget`
-* Con `curl -I https://www.google.com`, pude inspeccionar las cabeceras de respuesta HTTP del servidor sin necesidad de descargar la página completa, ideal para diagnósticos rápidos de APIs o sitios web.
-* Con `wget`, practiqué la descarga de archivos directamente desde la terminal, una tarea común al automatizar la obtención de instaladores o artefactos.
+### Estructura del Proyecto Simple:
+```
+freelancer-deploy/
+├── Vagrantfile
+├── playbook.yml
+└── files/
+└── nginx.conf
+```
+## 🎯 Parte 2: Desafío Principal - Estructura Profesional con Roles
+El verdadero desafío del día fue refactorizar la lógica anterior en una estructura profesional, modular y reutilizable utilizando Roles de Ansible.
 
-### 3. Inspeccionando Puertos Locales con `ss`
-Ejecuté `sudo ss -tuln` para obtener un mapa de todos los puertos TCP y UDP que están "escuchando" en mi sistema. Este comando es crucial para verificar qué servicios (como servidores web, bases de datos, etc.) están corriendo y esperando conexiones. Identifiqué el puerto `:22` de mi servicio SSH.
+**Objetivo:** Crear un playbook que automatice:
 
-### 4. Consultando el DNS con `dig`
-Para entender la resolución de nombres, usé `dig 90daysdevops.295devops.com`. En la sección de respuesta, pude ver claramente cómo el nombre de dominio se traduce a su correspondiente dirección IP, el primer paso para que cualquier comunicación en internet pueda empezar.
+La instalación de Nginx con una página personalizada.
+La creación de un usuario devops con privilegios sudo.
+La configuración de un firewall básico con ufw.
+Estructura Profesional del Proyecto
+```
+tarea-practica/
+├── Vagrantfile
+├── desplegar_app.yml
+├── roles/
+│   ├── nginx/
+│   │   ├── files/
+│   │   │   └── index.html
+│   │   └── tasks/
+│   │       └── main.yml
+│   ├── devops_user/
+│   │   └── tasks/
+│   │       └── main.yml
+│   └── firewall/
+│       └── tasks/
+│           └── main.yml
+└── README.md
+```
 
-## Conclusión del Día
+## ⚙️ Cómo Ejecutar el Proyecto Final
+**Prerrequisitos:** Asegúrate de tener Vagrant, Ansible y VirtualBox instalados.
+**Iniciar:** Clona el repositorio, navega a la carpeta del proyecto (tarea-practica) 
+**ejecuta:** vagrant up
 
-Este día fue clave para desmitificar la "magia" de internet. Ahora cuento con un set de herramientas de diagnóstico fundamentales. Saber usar `ping`, `curl`, `ss` y `dig` me da la confianza para empezar a diagnosticar por qué un servicio no responde o por qué un contenedor no puede conectarse a una base de datos, habilidades indispensables en DevOps.
+## Verificar:
+**Página Web:** Abre tu navegador y visita http://192.168.33.11.
+**Usuario:** Desde la terminal, ejecuta vagrant ssh -c "id devops".
+**Firewall:** Desde la terminal, ejecuta vagrant ssh -c "sudo ufw status".
+
+## ✅ Conclusión y Aprendizajes
+Este día fue fundamental para pasar de simples scripts a una automatización estructurada. La principal lección es el poder de los Roles de Ansible para crear código modular, fácil de leer, reutilizable y mantenible, lo cual es esencial en cualquier entorno de DevOps profesional.
+
