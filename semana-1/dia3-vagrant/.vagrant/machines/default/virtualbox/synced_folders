@@ -1,1 +1,0 @@
-{"virtualbox":{"/var/www/html":{"owner":"www-data","group":"www-data","guestpath":"/var/www/html","hostpath":"/home/david/git/90-days-of-devops-Roxs/dia3-vagrant/html","disabled":false,"__vagrantfile":true},"/vagrant":{"guestpath":"/vagrant","hostpath":"/home/david/git/90-days-of-devops-Roxs/dia3-vagrant","disabled":false,"__vagrantfile":true}}}
