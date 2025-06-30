@@ -1,2 +1,4 @@
 .vagrant/
 
+# Ignorar todos los entornos virtuales de Python
+venv/
