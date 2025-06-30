@@ -1,0 +1,91 @@
+# docker-compose.monitoring.yml - Versión Simplificada para Principiantes
+services:
+  prometheus:
+    image: prom/prometheus:v3.4.0
+    container_name: roxs-prometheus
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    networks:
+      - roxs-monitoring-network
+      - roxs-app-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  grafana:
+    image: grafana/grafana:12.0.1
+    container_name: roxs-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: false
+      GF_INSTALL_PLUGINS: grafana-clock-panel,grafana-piechart-panel
+      GF_LOG_LEVEL: info
+      GF_LOG_MODE: console
+      GF_PLUGINS_ENABLE_ALPHA: false
+      GF_ALERTING_ENABLED: false
+      GF_UNIFIED_ALERTING_ENABLED: false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "${GRAFANA_PORT:-3001}:3000"
+    networks:
+      - roxs-monitoring-network
+      - roxs-app-network
+    depends_on:
+      - prometheus
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  node-exporter:
+    image: prom/node-exporter:v1.9.1
+    container_name: roxs-node-exporter
+    restart: unless-stopped
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+      - '--log.level=warn'                        
+      - '--no-collector.nfsd'                     
+      - '--no-collector.nfs'                      
+      - '--no-collector.hwmon'                    
+      - '--no-collector.wifi'                     
+      - '--no-collector.nvme'                    
+      - '--no-collector.rapl'                    
+      - '--no-collector.thermal_zone'             
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    ports:
+      - "9100:9100"
+    networks:
+      - roxs-monitoring-network
+      - roxs-app-network
+
+volumes:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  roxs-monitoring-network:
+    driver: bridge
+  roxs-app-network:
+    driver: bridge

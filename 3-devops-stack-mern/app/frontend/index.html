@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sistema de gestión de items con FastAPI">
+    <meta name="author" content="roxsross">
+    <meta name="api-base-url" content="">
+    <title>Gestión de Items - DevOps Project</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📦 Gestión de Items</h1>
+            <p>Sistema DevOps con FastAPI + PostgreSQL by roxsross</p>
+            <span id="apiStatus" class="api-status offline">Conectando...</span>
+        </div>
+        
+        <div class="content">
+            <div class="form-section">
+                <h2 id="formTitle">🆕 Crear Nuevo Item</h2>
+                
+                <div id="alertContainer"></div>
+                
+                <form id="itemForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="itemName">📝 Nombre:</label>
+                            <input type="text" id="itemName" name="name" required 
+                                   placeholder="Ej: Laptop Dell XPS" 
+                                   maxlength="100">
+                        </div>
+                        <div class="form-group">
+                            <label for="itemId">🔢 ID (solo lectura):</label>
+                            <input type="number" id="itemId" name="id" readonly 
+                                   placeholder="Se asigna automáticamente">
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="itemDescription">📄 Descripción:</label>
+                            <textarea id="itemDescription" name="description" required 
+                                      placeholder="Describe el item en detalle..."
+                                      maxlength="500"></textarea>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            ✨ Crear Item
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="cancelBtn" style="display: none;">
+                            ❌ Cancelar
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="refreshBtn">
+                            🔄 Actualizar Lista
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Lista de items -->
+            <div class="form-section">
+                <h2>📋 Lista de Items</h2>
+                <div id="itemsContainer">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Cargando items desde la API...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
