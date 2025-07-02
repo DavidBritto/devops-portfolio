@@ -1,0 +1,30 @@
+name: Mi Primer CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  saludar:
+    runs-on: ubuntu-latest
+    steps:
+    - name: 📥 Descargar código
+      uses: actions/checkout@v4
+
+    - name: 👋 ¡Hola mundo DevOps!
+      run: |
+        echo "¡Hola DevOps con Roxs! 🚀"
+        date
+        uname -a
+
+    - name: 🧪 Test Matemático
+      run: |
+        if [ $((2+2)) -eq 4 ]; then
+          echo "✅ Todo OK"
+        else
+          echo "❌ Algo falló"
+          exit 1
+        fi

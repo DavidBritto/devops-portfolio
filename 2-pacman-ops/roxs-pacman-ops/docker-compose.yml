@@ -1,0 +1,100 @@
+
+
+services:
+  pacman-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:80"
+    environment:
+      - REACT_APP_BACKEND_URL=http://pacman-backend:8080
+      - REACT_APP_URL=http://localhost:8000
+      - NODE_ENV=production
+      - CONTAINER_PLATFORM=docker
+      - DEPLOYMENT_TYPE=compose
+      - CHALLENGE_NAME=90DaysWithRoxs
+    depends_on:
+      - pacman-backend
+      - mongodb
+      - redis
+    networks:
+      - pacman-network
+    restart: unless-stopped
+
+
+  pacman-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: pacman-backend
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+      - MONGODB_URI=mongodb://mongodb:27017/pacman-devops
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+      - CONTAINER_PLATFORM=docker
+      - DEPLOYMENT_TYPE=compose
+      - CHALLENGE_NAME=90DaysWithRoxs
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - pacman-network
+    restart: unless-stopped
+
+
+  mongodb:
+    image: mongo:7.0
+    container_name: pacman-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=pacman-devops
+    volumes:
+      - mongodb_data:/data/db
+      - ./mongo-init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - pacman-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: pacman-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - pacman-network
+    restart: unless-stopped
+
+  mongo-express:
+    image: mongo-express:1.0.0
+    container_name: pacman-mongo-express
+    ports:
+      - "8081:8081"
+    environment:
+      - ME_CONFIG_MONGODB_URL=mongodb://mongodb:27017/
+      - ME_CONFIG_BASICAUTH_USERNAME=admin
+      - ME_CONFIG_BASICAUTH_PASSWORD=admin
+    depends_on:
+      - mongodb
+    networks:
+      - pacman-network
+    restart: unless-stopped
+
+
+networks:
+  pacman-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+    driver: local
+  redis_data:
+    driver: local
+

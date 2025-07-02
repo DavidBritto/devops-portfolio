@@ -1,0 +1,197 @@
+.devops-stats {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.9);
+  border: 2px solid #FFD700;
+  border-radius: 10px;
+  padding: 1rem;
+  min-width: 280px;
+  max-width: 350px;
+  z-index: 1000;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  color: #00ff00;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.devops-stats.minimized {
+  min-width: 60px;
+  max-width: 60px;
+  padding: 0.5rem;
+}
+
+.stats-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #FFD700;
+  padding-bottom: 0.5rem;
+}
+
+.stats-header h3 {
+  color: #FFD700;
+  margin: 0;
+  font-size: 1rem;
+}
+
+.minimized .stats-header h3 {
+  display: none;
+}
+
+.minimize-btn {
+  background: transparent;
+  border: 1px solid #FFD700;
+  color: #FFD700;
+  cursor: pointer;
+  border-radius: 3px;
+  padding: 0.2rem 0.4rem;
+  font-size: 0.8rem;
+  transition: all 0.3s ease;
+}
+
+.minimize-btn:hover {
+  background: #FFD700;
+  color: #000;
+}
+
+.stats-content {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.stat-section {
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-section h4 {
+  color: #FFD700;
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.2rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-item:last-child {
+  border-bottom: none;
+}
+
+.stat-label {
+  color: #cccccc;
+  font-size: 0.8rem;
+}
+
+.stat-value {
+  color: #00ff00;
+  font-weight: bold;
+  font-size: 0.8rem;
+}
+
+/* Platform-specific colors */
+.platform-kubernetes {
+  color: #326ce5;
+}
+
+.platform-docker {
+  color: #2496ed;
+}
+
+.platform-unknown {
+  color: #ff6b6b;
+}
+
+/* Environment-specific colors */
+.env-production {
+  color: #ff4757;
+}
+
+.env-staging {
+  color: #ffa502;
+}
+
+.env-development {
+  color: #2ed573;
+}
+
+/* Live count animation */
+.live-count {
+  color: #00ff00;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+/* Rank position styling */
+.rank-position {
+  color: #FFD700;
+  font-weight: bold;
+}
+
+/* Challenge progress */
+.challenge-progress {
+  background: linear-gradient(45deg, rgba(255, 215, 0, 0.1), rgba(255, 165, 0, 0.1));
+  border-color: #FFD700;
+}
+
+.progress-info {
+  text-align: center;
+  color: #FFD700;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .devops-stats {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    max-width: none;
+    min-width: auto;
+  }
+  
+  .devops-stats.minimized {
+    left: auto;
+    right: 10px;
+    max-width: 60px;
+    min-width: 60px;
+  }
+}
+
+/* Hover effects */
+.devops-stats:hover {
+  border-color: #00ff00;
+  box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+}
+
+/* Accessibility */
+.devops-stats:focus-within {
+  outline: 2px solid #FFD700;
+  outline-offset: 2px;
+}
+
+.minimize-btn:focus {
+  outline: 1px solid #00ff00;
+}

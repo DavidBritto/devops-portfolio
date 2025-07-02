@@ -1,0 +1,322 @@
+footer {
+  margin-top: auto;
+  padding: 1.5rem 2rem;
+  background: transparent;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  backdrop-filter: blur(10px);
+  position: relative;
+}
+
+/* Footer extendido para todas las páginas principales */
+.auth-container footer,
+.main footer,
+.game-container footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100vw;
+  margin: 0;
+  padding: 1.5rem 0;
+  z-index: 10;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(15px);
+  box-sizing: border-box;
+}
+
+/* Footer normal para GameResults (siempre visible en la parte inferior) */
+.game-results footer {
+  position: relative;
+  width: 100%;
+  flex-shrink: 0;
+  padding: 1.5rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(15px);
+  box-sizing: border-box;
+}
+
+/* Contenido del footer extendido */
+.auth-container .footer-content,
+.main .footer-content,
+.game-container .footer-content {
+  max-width: none;
+  width: 100%;
+  margin: 0;
+  padding: 0 2rem;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+/* Footer content para GameResults */
+.game-results .footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+/* Fondo mejorado para footer extendido */
+.auth-container footer::before,
+.main footer::before,
+.game-container footer::before {
+  background: linear-gradient(135deg, 
+    rgba(15, 15, 35, 0.6) 0%, 
+    rgba(26, 26, 46, 0.5) 50%, 
+    rgba(22, 33, 62, 0.6) 100%);
+}
+
+/* Fondo específico para GameResults */
+.game-results footer::before {
+  background: linear-gradient(135deg, 
+    rgba(15, 15, 35, 0.95) 0%, 
+    rgba(26, 26, 46, 0.9) 50%, 
+    rgba(22, 33, 62, 0.95) 100%);
+}
+
+footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, 
+    rgba(15, 15, 35, 0.4) 0%, 
+    rgba(26, 26, 46, 0.3) 50%, 
+    rgba(22, 33, 62, 0.4) 100%);
+  border-radius: 0 0 0 0;
+  z-index: -1;
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.footer-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
+a {
+  color: #00ffff;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  position: relative;
+  display: inline-block;
+}
+
+a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: linear-gradient(90deg, #00ffff, #ffff00);
+  transition: width 0.3s ease;
+}
+
+a:hover {
+  color: #ffff00;
+  text-shadow: 0 0 8px rgba(0, 255, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+a:hover::after {
+  width: 100%;
+}
+
+.footer-text {
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+  font-size: clamp(0.8rem, 2.2vw, 1rem);
+  font-weight: 400;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.footer-subtext {
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+  font-size: clamp(0.7rem, 1.8vw, 0.9rem);
+  opacity: 0.9;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.footer-credits {
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+  font-size: clamp(0.6rem, 1.5vw, 0.8rem);
+  opacity: 0.8;
+  font-style: italic;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.footer-separator {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: clamp(0.8rem, 2vw, 1rem);
+  font-weight: bold;
+}
+
+/* Estilos específicos para GameResults */
+.game-results footer {
+  background: linear-gradient(135deg, 
+    rgba(15, 15, 35, 0.95) 0%, 
+    rgba(26, 26, 46, 0.9) 50%, 
+    rgba(22, 33, 62, 0.95) 100%);
+  border-top: 2px solid rgba(255, 215, 0, 0.2);
+  box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.game-results .footer-content {
+  position: relative;
+  z-index: 100;
+}
+
+.game-results .footer-text,
+.game-results .footer-subtext,
+.game-results .footer-credits {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.game-results a {
+  color: #FFD700;
+  font-weight: 600;
+}
+
+.game-results a:hover {
+  color: #FFA500;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+}
+
+.game-results a::after {
+  background: linear-gradient(90deg, #FFD700, #FFA500);
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+  footer {
+    padding: 1rem;
+  }
+  
+  .footer-main {
+    gap: 0.6rem;
+  }
+  
+  .footer-text {
+    font-size: clamp(0.75rem, 2vw, 0.9rem);
+  }
+  
+  .footer-subtext {
+    font-size: clamp(0.65rem, 1.8vw, 0.85rem);
+  }
+  
+  .footer-credits {
+    font-size: clamp(0.55rem, 1.5vw, 0.75rem);
+  }
+  
+  /* Ajustes de padding para todas las páginas con footer extendido */
+  .auth-container,
+  .main {
+    padding-bottom: 5rem; /* Aumentado para mejor separación */
+  }
+  
+  .auth-container footer,
+  .main footer,
+  .game-container footer {
+    padding: 1.2rem 0; /* Aumentado padding */
+  }
+  
+  .auth-container .footer-content,
+  .main .footer-content,
+  .game-container .footer-content {
+    padding: 0 1rem;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  footer {
+    padding: 0.8rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  
+  .footer-main {
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  
+  .footer-separator {
+    display: none;
+  }
+  
+  .footer-text {
+    font-size: clamp(0.7rem, 2.2vw, 0.85rem);
+  }
+  
+  .footer-subtext {
+    font-size: clamp(0.6rem, 1.8vw, 0.8rem);
+  }
+  
+  .footer-credits {
+    font-size: clamp(0.5rem, 1.5vw, 0.7rem);
+  }
+  
+  /* Ajustes de padding para móviles */
+  .auth-container,
+  .main {
+    padding-bottom: 4.5rem; /* Aumentado para móviles */
+  }
+  
+  .auth-container footer,
+  .main footer,
+  .game-container footer {
+    padding: 1rem 0; /* Aumentado padding */
+  }
+  
+  .auth-container .footer-content,
+  .main .footer-content,
+  .game-container .footer-content {
+    padding: 0 0.8rem; /* Aumentado padding lateral */
+  }
+}
+
+/* Media queries específicas para GameResults */
+@media screen and (max-width: 768px) {
+  .game-results footer {
+    border-top: 1px solid rgba(255, 215, 0, 0.15);
+    padding: 1.2rem 0;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .game-results footer {
+    padding: 1rem 0;
+    background: linear-gradient(135deg, 
+      rgba(15, 15, 35, 0.98) 0%, 
+      rgba(26, 26, 46, 0.95) 50%, 
+      rgba(22, 33, 62, 0.98) 100%);
+  }
+  
+  .game-results .footer-content {
+    padding: 0 1rem;
+  }
+}
+
+@media screen and (max-width: 320px) {
+  .game-results footer {
+    padding: 0.8rem 0;
+  }
+  
+  .game-results .footer-content {
+    padding: 0 0.5rem;
+  }
+}
