@@ -1,0 +1,40 @@
+---
+- name: Configurar el entorno para la App de Votación
+  hosts: all
+  become: yes
+
+  tasks:
+    # ---- TAREA 1: INSTALAR SOFTWARE BASE ----
+    - name: Actualizar caché de APT e instalar paquetes del sistema
+      ansible.builtin.apt:
+        name: [ "redis-server", "postgresql", "python3", "python3-pip", "nodejs", "npm" ]
+        state: present
+        update_cache: yes
+
+    # ---- TAREA 2: CONFIGURAR POSTGRESQL (MÉTODO SUDO MANUAL) ----
+    - name: Asegurarse de que PostgreSQL esté iniciado
+      ansible.builtin.service:
+        name: postgresql
+        state: started
+        enabled: yes
+
+    - name: Configurar usuario y base de datos directamente con sudo
+      ansible.builtin.shell: |
+        sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'postgres';"
+        sudo -u postgres psql -c "CREATE DATABASE votes;"
+      register: psql_result
+      failed_when: psql_result.rc != 0 and 'already exists' not in psql_result.stderr
+      changed_when: psql_result.rc == 0
+
+    # ---- TAREA 3: PREPARAR APLICACIONES ----
+    - name: Instalar dependencias de Python (Vote App)
+      ansible.builtin.pip:
+        requirements: /vagrant/roxs-voting-app/vote/requirements.txt
+        executable: pip3
+
+    - name: Instalar dependencias de Node.js (Worker y Result App)
+      ansible.builtin.npm:
+        path: "/vagrant/roxs-voting-app/{{ item }}"
+      loop:
+        - worker
+        - result
