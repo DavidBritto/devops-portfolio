@@ -18,13 +18,13 @@ jobs:
       # La solución: nos movemos a la carpeta 'mi-app' primero
       working-directory: ./mi-app
       # El '|| true' evita que el workflow falle si no hay nada que parar
-      run: docker compose down -v --remove-orphans || true
+      run: docker-compose down -v --remove-orphans || true
 
     - name: 🚀 Construir y levantar nuevos servicios
       # Nos aseguramos de estar en la misma carpeta para este paso también
       working-directory: ./mi-app
       # Usamos 'up -d --build' para construir y levantar en un solo paso eficiente
-      run: docker compose up -d --build
+      run: docker-compose up -d --build
 
     - name: 🩺 Verificar que la app responde
       # Damos unos segundos para que el servidor inicie
