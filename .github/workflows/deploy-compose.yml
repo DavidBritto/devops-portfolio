@@ -10,7 +10,7 @@ jobs:
     runs-on: self-hosted
 
     steps:
-    - name: 📥 Clonar el código en el runner
+    - name: 📥 Clonar el código en el runners
       uses: actions/checkout@v4
 
     # --- ¡AQUÍ ESTÁ LA SOLUCIÓN! ---
