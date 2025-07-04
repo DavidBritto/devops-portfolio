@@ -1,0 +1,34 @@
+name: Despliegue Continuo (CD)
+
+on:
+  # Se dispara solo en pushes a la rama main
+  push:
+    branches:
+      - 'main'
+  workflow_dispatch:
+
+jobs:
+  # Primero, nos aseguramos de que el CI pase
+  integracion-continua:
+    uses: ./.github/workflows/ci.yml
+
+  # El job de despliegue solo se ejecuta si el de CI fue exitoso
+  desplegar:
+    needs: integracion-continua
+    runs-on: self-hosted # ¡Usa nuestro runner!
+
+    steps:
+    - name: 📥 Clonar el código en el runner
+      uses: actions/checkout@v4
+
+    - name: 🛑 Parar servicios anteriores
+      run: docker-compose down -v --remove-orphans || true
+
+    - name: 🚀 Construir y levantar nuevos servicios
+      run: docker-compose up -d --build
+
+    - name: 🩺 Verificar que la app de votación responde
+      run: |
+        sleep 10 # Dar tiempo a que los servicios levanten
+        echo "Verificando el estado de la aplicación de votación..."
+        curl -f http://localhost:5000
