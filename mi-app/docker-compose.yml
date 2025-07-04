@@ -5,3 +5,9 @@ services:
     build: ./app
     ports:
       - "3000:3000"
+    # Añadimos esta sección para que Docker gestione los logs Del desadio dia 20
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"  # Tamaño máximo de un archivo de log: 10MB
+        max-file: "3"    # Número máximo de archivos de log a rotar
