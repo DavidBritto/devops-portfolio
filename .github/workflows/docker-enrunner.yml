@@ -1,0 +1,22 @@
+name: Docker en Self-hosted
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  docker-build:
+    runs-on: [self-hosted]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Build Docker
+      run: docker build -t mi-app:runner .
+
+    - name: Test Docker
+      run: |
+        docker run -d --name app-runner -p 5000:5000 mi-app:runner
+        sleep 10
+        curl -f http://localhost:5000/health
+        docker stop app-runner && docker rm app-runner
