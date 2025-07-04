@@ -25,6 +25,8 @@ jobs:
       run: docker-compose down -v --remove-orphans || true
 
     - name: 🚀 Construir y levantar nuevos servicios
+   # Le decimos al runner que se mueva a esta carpeta anidada antes de ejecutar el comando
+      working-directory: ./voting-app/roxs-voting-app
       run: docker-compose up -d --build
 
     - name: 🩺 Verificar que la app de votación responde
