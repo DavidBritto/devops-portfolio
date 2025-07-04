@@ -1,0 +1,31 @@
+name: Deploy con Docker Compose
+
+on:
+  push:
+    branches: [ main ] # Se dispara al hacer push a main
+  workflow_dispatch:   # Permite dispararlo manualmente
+
+jobs:
+  deploy:
+    # ¡Clave! Le decimos que use nuestro runner auto-alojado
+    runs-on: self-hosted
+
+    steps:
+    - name: 📥 Clonar el código en el runner
+      uses: actions/checkout@v4
+
+    - name: 🛑 Parar servicios anteriores (si existen)
+      # El '|| true' evita que el workflow falle si no hay nada que parar
+      run: docker compose -f mi-app/docker-compose.yml down -v || true
+
+    - name: 📦 Construir nuevas imágenes
+      run: docker compose -f mi-app/docker-compose.yml build
+
+    - name: 🚀 Levantar los servicios en modo detached (-d)
+      run: docker compose -f mi-app/docker-compose.yml up -d
+
+    - name: 🩺 Verificar que la app responde
+      # Damos unos segundos para que el servidor inicie
+      run: |
+        sleep 5
+        curl -f http://localhost:3000
