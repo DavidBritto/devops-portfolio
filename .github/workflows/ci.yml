@@ -1,32 +1,39 @@
-name: Integración Continua (CI)
+# Archivo: .github/workflows/deploy.yml
+# Versión corregida para apuntar a 'roxs-voting-app'
+
+name: Despliegue Continuo (CD)
 
 on:
   push:
-    branches-ignore:
-      - 'main'
-  pull_request:
     branches:
       - 'main'
+  workflow_dispatch:
 
 jobs:
-  tests-y-build:
-    # La corrección clave: le asignamos el job a nuestro runner.
+  integracion-continua:
+    uses: ./.github/workflows/ci.yml
+
+  desplegar:
+    needs: integracion-continua
     runs-on: self-hosted
 
     steps:
-    - name: 📥 Clonar el código
+    - name: 📥 Clonar el código en el runner
       uses: actions/checkout@v4
 
-    - name: 🐍 Simular tests para 'vote' (Python)
-      run: echo "✅ Tests de Python para 'vote' pasaron."
+    - name: 🛑 Parar servicios anteriores
+      # LA CORRECCIÓN: Apuntamos a la carpeta correcta.
+      working-directory: ./roxs-voting-app
+      run: docker-compose down -v --remove-orphans || true
 
-    - name: 📦 Simular tests para 'result' (Node.js)
-      run: echo "✅ Tests de Node.js para 'result' pasaron."
+    - name: 🚀 Construir y levantar nuevos servicios
+      # LA CORRECCIÓN: Apuntamos a la carpeta correcta.
+      working-directory: ./roxs-voting-app
+      run: docker-compose up -d --build
 
-    - name: 🧠 Simular tests para 'worker' (Node.js)
-      run: echo "✅ Tests de Node.js para 'worker' pasaron."
-
-    - name: 🐳 Construir imágenes Docker con Docker Compose
-      # La ruta correcta desde la raíz del repo hasta donde está el docker-compose.yml
-      working-directory: ./voting-app/roxs-voting-app
-      run: docker-compose build
+    - name: 🩺 Verificar que la app de votación responde
+      run: |
+        sleep 10 # Dar tiempo a que los servicios levanten
+        echo "Verificando el estado de la aplicación de votación..."
+        # El puerto 5000 es el que definimos para el servicio 'vote'
+        curl -f http://localhost:5000
