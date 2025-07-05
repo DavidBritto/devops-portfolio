@@ -1,18 +1,20 @@
+# Archivo: .github/workflows/ci.yml
+# Versión corregida para usar el runner self-hosted
+
 name: Integración Continua (CI)
 
 on:
-  # Se dispara en pushes a cualquier rama que NO sea main
   push:
     branches-ignore:
       - 'main'
-  # También en Pull Requests hacia main
   pull_request:
     branches:
       - 'main'
 
 jobs:
   tests-y-build:
-    runs-on: ubuntu-latest # Este job puede correr en un runner de GitHub
+    # La corrección clave: le asignamos el job a nuestro runner.
+    runs-on: self-hosted
 
     steps:
     - name: 📥 Clonar el código
@@ -28,5 +30,6 @@ jobs:
       run: echo "✅ Tests de Node.js para 'worker' pasaron."
 
     - name: 🐳 Construir imágenes Docker con Docker Compose
-      # Este paso verifica que todos los Dockerfiles son válidos y construyen las imágenes
+      # Este paso ahora funcionará porque nuestro runner SÍ tiene 'docker-compose'
+      working-directory: ./roxs-voting-app # Asegúrate que la ruta sea correcta
       run: docker-compose build
