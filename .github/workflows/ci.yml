@@ -27,6 +27,6 @@ jobs:
       run: echo "✅ Tests de Node.js para 'worker' pasaron."
 
     - name: 🐳 Construir imágenes Docker con Docker Compose
-      # Este paso ahora funcionará porque nuestro runner SÍ tiene 'docker-compose'
-      working-directory: ./roxs-voting-app # Asegúrate que la ruta sea correcta
+      # La ruta correcta desde la raíz del repo hasta donde está el docker-compose.yml
+      working-directory: ./voting-app/roxs-voting-app
       run: docker-compose build
