@@ -1,6 +1,3 @@
-# Archivo: .github/workflows/ci.yml
-# Versión corregida para usar el runner self-hosted
-
 name: Integración Continua (CI)
 
 on:
