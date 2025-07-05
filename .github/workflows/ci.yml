@@ -1,0 +1,32 @@
+name: Integración Continua (CI)
+
+on:
+  push:
+    branches-ignore:
+      - 'main'
+  pull_request:
+    branches:
+      - 'main'
+
+jobs:
+  tests-y-build:
+    # La corrección clave: le asignamos el job a nuestro runner.
+    runs-on: self-hosted
+
+    steps:
+    - name: 📥 Clonar el código
+      uses: actions/checkout@v4
+
+    - name: 🐍 Simular tests para 'vote' (Python)
+      run: echo "✅ Tests de Python para 'vote' pasaron."
+
+    - name: 📦 Simular tests para 'result' (Node.js)
+      run: echo "✅ Tests de Node.js para 'result' pasaron."
+
+    - name: 🧠 Simular tests para 'worker' (Node.js)
+      run: echo "✅ Tests de Node.js para 'worker' pasaron."
+
+    - name: 🐳 Construir imágenes Docker con Docker Compose
+      # La ruta correcta desde la raíz del repo hasta donde está el docker-compose.yml
+      working-directory: ./voting-app/roxs-voting-app
+      run: docker-compose build

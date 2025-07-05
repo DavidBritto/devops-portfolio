@@ -1,4 +1,28 @@
+# .gitignore
+
+# --- Dependencias de Node.js ---
+# La carpeta más importante a ignorar
+node_modules/
+npm-debug.log
+package-lock.json
+
+# --- Dependencias y caché de Python ---
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# --- Archivos del sistema operativo ---
+.DS_Store
+Thumbs.db
+
+# --- Archivos de Vagrant ---
+# Para que nunca subas el estado de tus VMs
 .vagrant/
 
-# Ignorar todos los entornos virtuales de Python
-venv/
+# --- Archivos de Log y compilados ---
+*.log
+*.log*
+
+# --- Archivos de variables de entorno ---
+.env
