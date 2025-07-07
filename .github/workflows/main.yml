@@ -1,0 +1,67 @@
+name: CI/CD Pipeline para Voting App
+
+on:
+  # Se activa con cada push a la rama main
+  push:
+    branches: [ "main" ]
+  # Permite ejecutarlo manualmente desde GitHub
+  workflow_dispatch:
+
+jobs:
+  # --- TRABAJO 1: CONSTRUIR IMÁGENES Y SUBIRLAS A DOCKER HUB ---
+  build-and-push:
+    # Este trabajo corre en una máquina virtual de GitHub, es más rápido y limpio para construir.
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Descarga tu código en la VM de GitHub
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      # 2. Inicia sesión en Docker Hub
+      - name: Login a Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      
+      # 3. Construye y sube la imagen de VOTE
+      - name: Build and push VOTE
+        uses: docker/build-push-action@v5
+        with:
+          context: ./roxs-voting-app/vote # Ruta a la carpeta del Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/vote:latest
+
+      # 4. Construye y sube la imagen de WORKER
+      - name: Build and push WORKER
+        uses: docker/build-push-action@v5
+        with:
+          context: ./roxs-voting-app/worker
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/worker:latest
+
+      # 5. Construye y sube la imagen de RESULT
+      - name: Build and push RESULT
+        uses: docker/build-push-action@v5
+        with:
+          context: ./roxs-voting-app/result
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/result:latest
+
+  # --- TRABAJO 2: DESPLEGAR LA APLICACIÓN EN TU SERVIDOR ---
+  deploy:
+    # Este trabajo solo empieza si el anterior ('build-and-push') terminó con éxito.
+    needs: build-and-push
+    
+    # Este trabajo SÍ corre en tu máquina (self-hosted runner).
+    runs-on: self-hosted
+    
+    steps:
+      - name: Checkout del código (necesario para tener docker-compose.yml)
+        uses: actions/checkout@v4
+      
+      - name: Desplegar con Docker Compose
+        run: |
+          cd roxs-voting-app
+          docker compose pull
+          docker compose up -d
