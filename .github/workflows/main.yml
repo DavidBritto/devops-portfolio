@@ -47,9 +47,24 @@ jobs:
       - name: Checkout del código
         uses: actions/checkout@v4
       
+      # --- ¡AQUÍ ESTÁ LA SOLUCIÓN! ---
+      - name: Crear archivo .env en el runner
+        run: |
+          echo "Creando archivo .env..."
+          cd voting-app/roxs-voting-app
+          
+          # Creamos el archivo .env dinámicamente usando los secretos de GitHub
+          echo "REDIS_HOST=redis" > .env
+          echo "DATABASE_HOST=database" >> .env
+          echo "DATABASE_USER=${{ secrets.DATABASE_USER }}" >> .env
+          echo "DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}" >> .env
+          echo "DATABASE_NAME=${{ secrets.DATABASE_NAME }}" >> .env
+          
+          echo "Archivo .env creado con éxito."
+
       - name: Desplegar con Docker Compose
         run: |
-          # Usamos la ruta correcta y el comando moderno 'docker compose'
           cd voting-app/roxs-voting-app
-          docker compose pull
-          docker compose up -d
+          # Usamos la versión con guion para compatibilidad
+          docker-compose pull
+          docker-compose up -d
