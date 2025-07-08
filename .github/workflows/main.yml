@@ -6,6 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
+  # --- TRABAJO 1: CONSTRUIR IMÁGENES Y SUBIRLAS A DOCKER HUB ---
   build-and-push:
     runs-on: ubuntu-latest
     steps:
@@ -39,6 +40,7 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/result:latest
 
+  # --- TRABAJO 2: DESPLEGAR LA APLICACIÓN EN TU SERVIDOR ---
   deploy:
     needs: build-and-push
     runs-on: self-hosted
@@ -47,13 +49,11 @@ jobs:
       - name: Checkout del código
         uses: actions/checkout@v4
       
-      # --- ¡AQUÍ ESTÁ LA SOLUCIÓN! ---
       - name: Crear archivo .env en el runner
         run: |
           echo "Creando archivo .env..."
           cd voting-app/roxs-voting-app
           
-          # Creamos el archivo .env dinámicamente usando los secretos de GitHub
           echo "REDIS_HOST=redis" > .env
           echo "DATABASE_HOST=database" >> .env
           echo "DATABASE_USER=${{ secrets.DATABASE_USER }}" >> .env
@@ -65,6 +65,7 @@ jobs:
       - name: Desplegar con Docker Compose
         run: |
           cd voting-app/roxs-voting-app
-          # Usamos la versión con guion para compatibilidad
+          # --- CORRECCIÓN CLAVE ---
+          # Usamos la versión con guion que nuestro nuevo Vagrantfile instala.
           docker-compose pull
           docker-compose up -d
