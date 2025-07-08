@@ -19,7 +19,6 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       
-      # --- RUTA CORREGIDA ---
       - name: Build and push VOTE
         uses: docker/build-push-action@v5
         with:
@@ -27,7 +26,6 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/vote:latest
 
-      # --- RUTA CORREGIDA ---
       - name: Build and push WORKER
         uses: docker/build-push-action@v5
         with:
@@ -35,7 +33,6 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/worker:latest
 
-      # --- RUTA CORREGIDA ---
       - name: Build and push RESULT
         uses: docker/build-push-action@v5
         with:
@@ -55,5 +52,5 @@ jobs:
       - name: Desplegar con Docker Compose
         run: |
           cd voting-app/roxs-voting-app
-          docker compose pull
-          docker compose up -d
+          docker-compose pull
+          docker-compose up -d
