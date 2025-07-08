@@ -1,19 +1,17 @@
-# Definición de todos los servicios (contenedores)
 services:
-  # --- Servicio de la App de Votación ---
   vote:
     build: ./vote
     ports:
       - "8080:5000"
     env_file:
-      - .env # Carga las variables desde el archivo .env
+      - .env
     networks:
       - votenet
     depends_on:
       redis:
-        condition: service_healthy # Solo inicia si Redis está "sano"
+        condition: service_healthy
+    restart: on-failure
 
-  # --- Servicio de la App de Resultados ---
   result:
     build: ./result
     ports:
@@ -24,9 +22,9 @@ services:
       - votenet
     depends_on:
       database:
-        condition: service_healthy # Solo inicia si la BD está "sana"
+        condition: service_healthy
+    restart: on-failure 
 
-  # --- Servicio del Worker ---
   worker:
     build: ./worker
     env_file:
@@ -38,23 +36,21 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    restart: on-failure
 
-  # --- Servicio de Redis ---
   redis:
     image: "redis:7-alpine"
     networks:
       - votenet
-    healthcheck: # Comprueba que Redis esté realmente funcionando
+    healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # --- Servicio de la Base de Datos PostgreSQL ---
   database:
     image: "postgres:15-alpine"
     environment:
-      # Usa las variables del archivo .env
       POSTGRES_USER: ${DATABASE_USER}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
       POSTGRES_DB: ${DATABASE_NAME}
@@ -62,17 +58,15 @@ services:
       - pgdata:/var/lib/postgresql/data
     networks:
       - votenet
-    healthcheck: # Comprueba que la BD esté lista para aceptar conexiones
+    healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-# Definición de la red personalizada
 networks:
   votenet:
     driver: bridge
 
-# Definición del volumen para persistencia de datos
 volumes:
   pgdata:

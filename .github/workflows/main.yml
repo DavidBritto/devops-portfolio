@@ -1,70 +1,68 @@
-services:
-  vote:
-    build: ./vote
-    ports:
-      - "8080:5000"
-    env_file:
-      - .env
-    networks:
-      - votenet
-    depends_on:
-      redis:
-        condition: service_healthy
-    restart: on-failure 
-  result:
-    build: ./result
-    ports:
-      - "3000:3000"
-    env_file:
-      - .env
-    networks:
-      - votenet
-    depends_on:
-      database:
-        condition: service_healthy
-    restart: on-failure
-  worker:
-    build: ./worker
-    env_file:
-      - .env
-    networks:
-      - votenet
-    depends_on:
-      database:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    restart: on-failure 
+name: CI/CD Pipeline para Voting App
 
-  redis:
-    image: "redis:7-alpine"
-    networks:
-      - votenet
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
 
-  database:
-    image: "postgres:15-alpine"
-    environment:
-      POSTGRES_USER: ${DATABASE_USER}
-      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
-      POSTGRES_DB: ${DATABASE_NAME}
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    networks:
-      - votenet
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
 
-networks:
-  votenet:
-    driver: bridge
+      - name: Login a Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      
+      - name: Build and push VOTE
+        uses: docker/build-push-action@v5
+        with:
+          context: ./voting-app/roxs-voting-app/vote
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/vote:latest
 
-volumes:
-  pgdata:
+      - name: Build and push WORKER
+        uses: docker/build-push-action@v5
+        with:
+          context: ./voting-app/roxs-voting-app/worker
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/worker:latest
+
+      - name: Build and push RESULT
+        uses: docker/build-push-action@v5
+        with:
+          context: ./voting-app/roxs-voting-app/result
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/result:latest
+
+  deploy:
+    needs: build-and-push
+    runs-on: self-hosted
+    
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+      
+      - name: Crear archivo .env en el runner
+        run: |
+          echo "Creando archivo .env..."
+          cd voting-app/roxs-voting-app
+          
+          # Creamos el archivo .env dinámicamente usando los secretos de GitHub
+          echo "REDIS_HOST=redis" > .env
+          echo "DATABASE_HOST=database" >> .env
+          echo "DATABASE_USER=${{ secrets.DATABASE_USER }}" >> .env
+          echo "DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}" >> .env
+          echo "DATABASE_NAME=${{ secrets.DATABASE_NAME }}" >> .env
+          
+          echo "Archivo .env creado con éxito."
+
+      - name: Desplegar con Docker Compose
+        run: |
+          cd voting-app/roxs-voting-app
+          docker-compose pull
+          docker-compose up -d
