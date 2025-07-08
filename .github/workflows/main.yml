@@ -6,7 +6,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  # --- TRABAJO 1: CONSTRUIR IMÁGENES Y SUBIRLAS A DOCKER HUB ---
   build-and-push:
     runs-on: ubuntu-latest
     steps:
@@ -40,15 +39,28 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/result:latest
 
-  # --- TRABAJO 2: DESPLEGAR LA APLICACIÓN EN TU SERVIDOR ---
   deploy:
     needs: build-and-push
     runs-on: self-hosted
     
+    # ACA DEJAMOS LAS TAREAS QUE SE EJECUTAN EN EL SERVIDOR LOCAL
     steps:
       - name: Checkout del código
         uses: actions/checkout@v4
-      
+      - name: Crear archivo .env en el runner
+        run: |
+          echo "Creando archivo .env..."
+          cd voting-app/roxs-voting-app
+          
+          # Creamos el archivo .env dinámicamente usando los secretos de GitHub
+          echo "REDIS_HOST=redis" > .env
+          echo "DATABASE_HOST=database" >> .env
+          echo "DATABASE_USER=${{ secrets.DATABASE_USER }}" >> .env
+          echo "DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}" >> .env
+          echo "DATABASE_NAME=${{ secrets.DATABASE_NAME }}" >> .env
+          
+          echo "Archivo .env creado con éxito."
+
       - name: Desplegar con Docker Compose
         run: |
           cd voting-app/roxs-voting-app
