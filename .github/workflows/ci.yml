@@ -1,41 +1,53 @@
-name: CI - Build y Push de Imágenes Docker
+name: CI Pipeline
 
 on:
   push:
-    branches: [ "develop" ] # Se activa con pushes a la rama de desarrollo
+    branches: [ develop, main ]
+    paths:
+      - 'voting-app/roxs-voting-app/**'
   pull_request:
-    branches: [ "main" ] # También se activa al crear un PR hacia main
+    branches: [ develop, main ]
+    paths:
+      - 'voting-app/roxs-voting-app/**'
 
 jobs:
-  build-and-push:
+  test:
     runs-on: ubuntu-latest
+    
     steps:
-      - name: Checkout del código
-        uses: actions/checkout@v4
-
-      - name: Login a Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Construir y pushear VOTE
-        uses: docker/build-push-action@v5
-        with:
-          context: ./voting-app/roxs-voting-app/vote
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/vote:latest
-
-      - name: Construir y pushear WORKER
-        uses: docker/build-push-action@v5
-        with:
-          context: ./voting-app/roxs-voting-app/worker
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/worker:latest
-
-      - name: Construir y pushear RESULT
-        uses: docker/build-push-action@v5
-        with:
-          context: ./voting-app/roxs-voting-app/result
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/result:latest
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Build and test Vote app
+      run: |
+        cd voting-app/roxs-voting-app
+        docker build -t vote-test ./vote
+        echo "✅ Vote app built Terminada"
+        
+    - name: Build and test Result app
+      run: |
+        cd voting-app/roxs-voting-app
+        docker build -t result-test ./result
+        echo "✅ Result app built Terminada"
+        
+    - name: Build and test Worker app
+      run: |
+        cd voting-app/roxs-voting-app
+        docker build -t worker-test ./worker
+        echo "✅ Worker app built Terminada"
+      
+    - name: Integration test with Docker Compose
+      run: |
+        cd voting-app/roxs-voting-app
+        docker compose -f docker-compose.yml up -d
+        sleep 30
+        
+        # Basic health checks
+        curl -f http://localhost:8080/ || exit 1
+        curl -f http://localhost:3000/ || exit 1
+        
+        docker compose -f docker-compose.yml down -v
+        echo "✅ Integration tests OK"
