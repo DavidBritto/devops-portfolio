@@ -1,45 +1,34 @@
-name: CD - Despliegue a Producción (Manual)
+name: CD - Despliegue a Staging
 
 on:
-  # Esto habilita el botón "Run workflow" en GitHub
-  workflow_dispatch:
-    inputs:
-      confirm:
-        description: 'Escribe "deploy" para confirmar el despliegue a producción.'
-        required: true
-        default: 'no'
+  workflow_run:
+    workflows: ["CI Pipeline"]
+    types: [completed]
+    branches: [develop]
 
 jobs:
   deploy:
-    # El trabajo solo se ejecuta si escribiste "deploy" al iniciarlo manualmente
-    if: ${{ github.event.inputs.confirm == 'deploy' }}
-
-    # Usa un runner dedicado y seguro para producción
-    runs-on: self-hosted-production
-
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: self-hosted-staging
     steps:
       - name: Checkout del código
         uses: actions/checkout@v4
-
-      - name: Crear archivo .env para Producción
+      
+      # --- Creamos el .env ---
+      - name: Crear archivo .env para Staging
         run: |
-          echo "Creando archivo .env para Producción..."
+          echo "Creando archivo .env en el runner..."
           cd ./voting-app/roxs-voting-app
-          # En un caso real, estos secretos serían diferentes a los de staging
+          
           echo "REDIS_HOST=redis" > .env
           echo "DATABASE_HOST=database" >> .env
-          echo "DATABASE_USER=${{ secrets.PROD_DATABASE_USER }}" >> .env
-          echo "DATABASE_PASSWORD=${{ secrets.PROD_DATABASE_PASSWORD }}" >> .env
-          echo "DATABASE_NAME=${{ secrets.PROD_DATABASE_NAME }}" >> .env
+          echo "DATABASE_USER=${{ secrets.DATABASE_USER }}" >> .env
+          echo "DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}" >> .env
+          echo "DATABASE_NAME=${{ secrets.DATABASE_NAME }}" >> .env
+          
+          echo "Archivo .env creado con éxito."
 
-      - name: Ejecutar Backup de la Base de Datos
+      - name: Desplegar stack de Staging con el script
         run: |
-          echo "Ejecutando script de backup antes del despliegue..."
-          cd ./voting-app/roxs-voting-app/
-          ./scripts/backup.sh production
-
-      - name: Desplegar stack de Producción con el script
-        run: |
-          echo "Ejecutando script de despliegue para Producción..."
-          cd ./voting-app/roxs-voting-app/
-          ./scripts/deploy.sh production
+          cd ./voting-app/roxs-voting-app
+          ./scripts/deploy.sh staging
