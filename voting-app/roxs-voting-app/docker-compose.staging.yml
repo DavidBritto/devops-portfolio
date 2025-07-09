@@ -1,0 +1,90 @@
+services:
+  vote:
+    build: ./vote
+    ports:
+      - "5001:5000"  # Cambiado para staging
+    env_file:
+      - .env
+    environment:
+      - FLASK_ENV=staging
+      - DB_NAME=${DATABASE_NAME:-votes}
+      - DB_USER=${DATABASE_USER:-postgres}
+      - DB_PASSWORD=${DATABASE_PASSWORD:-postgres}
+      - DB_HOST=database
+    networks:
+      - votenet
+    depends_on:
+      redis:
+        condition: service_healthy
+      database:
+        condition: service_healthy
+
+  result:
+    build: ./result
+    ports:
+      - "5002:3000"  # Cambiado para staging
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=staging
+      - DB_NAME=${DATABASE_NAME:-votes}
+      - DB_USER=${DATABASE_USER:-postgres}
+      - DB_PASSWORD=${DATABASE_PASSWORD:-postgres}
+      - DB_HOST=database
+    networks:
+      - votenet
+    depends_on:
+      database:
+        condition: service_healthy
+
+  worker:
+    build: ./worker
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=staging
+      - DB_NAME=${DATABASE_NAME:-votes}
+      - DB_USER=${DATABASE_USER:-postgres}
+      - DB_PASSWORD=${DATABASE_PASSWORD:-postgres}
+      - DB_HOST=database
+    networks:
+      - votenet
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  redis:
+    image: "redis:7-alpine"
+    networks:
+      - votenet
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  database:
+    image: "postgres:15-alpine"
+    environment:
+      - POSTGRES_USER=${DATABASE_USER:-postgres}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD:-postgres}
+      - POSTGRES_DB=${DATABASE_NAME:-votes}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - votenet
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-postgres} -d ${DATABASE_NAME:-votes}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+networks:
+  votenet:
+    driver: bridge
+
+volumes:
+  pgdata:

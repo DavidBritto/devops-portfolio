@@ -1,0 +1,18 @@
+
+name: Monitoreo - Health Check de Producción
+
+on:
+  schedule:
+    # Se ejecuta cada 15 minutos
+    - cron: '*/15 * * * *'
+  workflow_dispatch: # También permite chequeos manuales
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verificar si la página de Votación responde
+        run: curl -sf http://192.168.56.10:8080 > /dev/null
+
+      - name: Verificar si la página de Resultados responde
+        run: curl -sf http://T192.168.56.10:3000 > /dev/null
