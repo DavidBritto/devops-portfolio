@@ -2,33 +2,24 @@ name: CD - Despliegue a Staging
 
 on:
   workflow_run:
-    workflows: ["CI - Build y Push de Imágenes Docker"] # El nombre del workflow de CI
-    types:
-      - completed
-    branches:
-      - develop
+    workflows: ["CI Pipeline"] # Debe coincidir con el 'name:' de tu ci.yml
+    types: [completed]
+    branches: [develop]
 
 jobs:
   deploy:
-    # Solo se ejecuta si el workflow de CI fue exitoso
+    # Solo se ejecuta si el workflow anterior fue exitoso
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    runs-on: self-hosted-staging # Usa un runner específico para staging
+
+    # ¡Aquí usamos tu runner!
+    runs-on: self-hosted-staging 
+
     steps:
       - name: Checkout del código
         uses: actions/checkout@v4
 
-      - name: Crear archivo .env para Staging
+      - name: Desplegar stack de Staging con el script
         run: |
-          echo "Creando archivo .env para Staging..."
-          cd voting-app/roxs-voting-app
-          echo "REDIS_HOST=redis" > .env
-          echo "DATABASE_HOST=database" >> .env
-          echo "DATABASE_USER=${{ secrets.DATABASE_USER }}" >> .env
-          echo "DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}" >> .env
-          echo "DATABASE_NAME=${{ secrets.DATABASE_NAME }}" >> .env
-
-      - name: Desplegar stack de Staging
-        run: |
-          cd voting-app/roxs-voting-app
-          docker-compose -f docker-compose.yml -f docker-compose.staging.yml pull
-          docker-compose -f docker-compose.yml -f docker-compose.staging.yml up -d
+          echo "Ejecutando script de despliegue para Staging..."
+          cd ./voting-app/roxs-voting-app/
+          ./scripts/deploy.sh staging

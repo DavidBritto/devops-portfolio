@@ -1,6 +1,7 @@
 name: CD - Despliegue a Producción (Manual)
 
 on:
+  # Esto habilita el botón "Run workflow" en GitHub
   workflow_dispatch:
     inputs:
       confirm:
@@ -10,8 +11,12 @@ on:
 
 jobs:
   deploy:
+    # El trabajo solo se ejecuta si escribiste "deploy" al iniciarlo manualmente
     if: ${{ github.event.inputs.confirm == 'deploy' }}
-    runs-on: self-hosted-production # Usa un runner separado y seguro para producción
+
+    # Usa un runner dedicado y seguro para producción
+    runs-on: self-hosted-production
+
     steps:
       - name: Checkout del código
         uses: actions/checkout@v4
@@ -19,16 +24,22 @@ jobs:
       - name: Crear archivo .env para Producción
         run: |
           echo "Creando archivo .env para Producción..."
-          cd voting-app/roxs-voting-app
-          # Aquí usarías secretos de producción, que podrían ser diferentes
+          cd ./voting-app/roxs-voting-app
+          # En un caso real, estos secretos serían diferentes a los de staging
           echo "REDIS_HOST=redis" > .env
           echo "DATABASE_HOST=database" >> .env
           echo "DATABASE_USER=${{ secrets.PROD_DATABASE_USER }}" >> .env
           echo "DATABASE_PASSWORD=${{ secrets.PROD_DATABASE_PASSWORD }}" >> .env
           echo "DATABASE_NAME=${{ secrets.PROD_DATABASE_NAME }}" >> .env
 
-      - name: Desplegar stack de Producción
+      - name: Ejecutar Backup de la Base de Datos
         run: |
-          cd voting-app/roxs-voting-app
-          docker-compose -f docker-compose.yml -f docker-compose.prod.yml pull
-          docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+          echo "Ejecutando script de backup antes del despliegue..."
+          cd ./voting-app/roxs-voting-app/
+          ./scripts/backup.sh production
+
+      - name: Desplegar stack de Producción con el script
+        run: |
+          echo "Ejecutando script de despliegue para Producción..."
+          cd ./voting-app/roxs-voting-app/
+          ./scripts/deploy.sh production
