@@ -1,0 +1,38 @@
+name: CD - Despliegue a Staging
+
+on:
+  workflow_run:
+    # Este evento se activa cuando el workflow "CI Pipeline" finaliza exitosamente.
+    workflows: ["CI Pipeline"]
+    types:
+      - completed
+    branches:
+      - develop
+
+jobs:
+  deploy:
+    # Esta condición asegura que solo se ejecute si el CI fue exitoso
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    # Le decimos que busque un runner con esta etiqueta
+    runs-on: self-hosted-staging
+
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Crear archivo .env para Staging
+        run: |
+          echo "Creando archivo .env para Staging..."
+          cd ./voting-app/roxs-voting-app
+          echo "REDIS_HOST=redis" > .env
+          echo "DATABASE_HOST=database" >> .env
+          echo "DATABASE_USER=${{ secrets.DATABASE_USER }}" >> .env
+          echo "DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}" >> .env
+          echo "DATABASE_NAME=${{ secrets.DATABASE_NAME }}" >> .env
+
+      - name: Desplegar stack de Staging con el script
+        run: |
+          echo "Ejecutando script de despliegue para Staging..."
+          cd ./voting-app/roxs-voting-app
+          ./scripts/deploy.sh staging
