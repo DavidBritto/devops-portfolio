@@ -1,5 +1,4 @@
 services:
-  # --- Servicio de la App de Votación ---
   vote:
     build: ./vote
     ports:
@@ -11,9 +10,8 @@ services:
     depends_on:
       redis:
         condition: service_healthy
-    restart: on-failure # <-- LÍNEA AÑADIDA
+    restart: on-failure # <-- PARA QUE NO DE UNHEALTHY SI FALLA
 
-  # --- Servicio de la App de Resultados ---
   result:
     build: ./result
     ports:
@@ -25,9 +23,8 @@ services:
     depends_on:
       database:
         condition: service_healthy
-    restart: on-failure # <-- LÍNEA AÑADIDA
+    restart: on-failure # <-- PARA QUE NO DE UNHEALTHY SI FALLA
 
-  # --- Servicio del Worker ---
   worker:
     build: ./worker
     env_file:
@@ -39,9 +36,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    restart: on-failure # <-- LÍNEA AÑADIDA
+    restart: on-failure # <-- PARA QUE NO DE UNHEALTHY SI FALLA
 
-  # --- Servicio de Redis ---
   redis:
     image: "redis:7-alpine"
     networks:
@@ -52,7 +48,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # --- Servicio de la Base de Datos PostgreSQL ---
   database:
     image: "postgres:15-alpine"
     environment:
@@ -69,11 +64,9 @@ services:
       timeout: 5s
       retries: 5
 
-# Definición de la red personalizada
 networks:
   votenet:
     driver: bridge
 
-# Definición del volumen para persistencia de datos
 volumes:
   pgdata:
