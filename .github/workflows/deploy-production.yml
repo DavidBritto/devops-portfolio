@@ -1,0 +1,34 @@
+name: CD - Despliegue a Producción (Manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Escribe "deploy" para confirmar el despliegue a producción.'
+        required: true
+        default: 'no'
+
+jobs:
+  deploy:
+    if: ${{ github.event.inputs.confirm == 'deploy' }}
+    runs-on: self-hosted-production # Usa un runner separado y seguro para producción
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Crear archivo .env para Producción
+        run: |
+          echo "Creando archivo .env para Producción..."
+          cd voting-app/roxs-voting-app
+          # Aquí usarías secretos de producción, que podrían ser diferentes
+          echo "REDIS_HOST=redis" > .env
+          echo "DATABASE_HOST=database" >> .env
+          echo "DATABASE_USER=${{ secrets.PROD_DATABASE_USER }}" >> .env
+          echo "DATABASE_PASSWORD=${{ secrets.PROD_DATABASE_PASSWORD }}" >> .env
+          echo "DATABASE_NAME=${{ secrets.PROD_DATABASE_NAME }}" >> .env
+
+      - name: Desplegar stack de Producción
+        run: |
+          cd voting-app/roxs-voting-app
+          docker-compose -f docker-compose.yml -f docker-compose.prod.yml pull
+          docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
