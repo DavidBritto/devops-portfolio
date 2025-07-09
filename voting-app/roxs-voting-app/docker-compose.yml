@@ -10,7 +10,7 @@ services:
     depends_on:
       redis:
         condition: service_healthy
-    restart: on-failure # <-- PARA QUE NO DE UNHEALTHY SI FALLA
+    restart: on-failure
 
   result:
     build: ./result
@@ -23,7 +23,7 @@ services:
     depends_on:
       database:
         condition: service_healthy
-    restart: on-failure # <-- PARA QUE NO DE UNHEALTHY SI FALLA
+    restart: on-failure
 
   worker:
     build: ./worker
@@ -36,7 +36,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    restart: on-failure # <-- PARA QUE NO DE UNHEALTHY SI FALLA
+    restart: on-failure
 
   redis:
     image: "redis:7-alpine"
@@ -63,6 +63,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      # --- ¡AQUÍ ESTÁ LA SOLUCIÓN FINAL! ---
+      # Le damos a la base de datos un período de gracia de 30 segundos para arrancar.
+      start_period: 30s
 
 networks:
   votenet:
