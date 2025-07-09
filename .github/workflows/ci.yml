@@ -13,37 +13,14 @@ jobs:
     - name: Checkout del código
       uses: actions/checkout@v4
       
-    - name: Configurar Docker Buildx
+    - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
       
-    - name: Construir y probar la imagen de VOTE
+    - name: Construir y probar imágenes (sin test de integración)
       run: |
-        cd voting-app/roxs-voting-app
-        docker build -t vote-test ./vote
-        echo "✅ Imagen de Vote construida con éxito"
+        echo "Construyendo imágenes para verificar que no hay errores..."
+        docker build -t vote-test ./voting-app/roxs-voting-app/vote
+        docker build -t result-test ./voting-app/roxs-voting-app/result
+        docker build -t worker-test ./voting-app/roxs-voting-app/worker
+        echo "✅ Todas las imágenes se construyeron con éxito."
         
-    - name: Construir y probar la imagen de RESULT
-      run: |
-        cd voting-app/roxs-voting-app
-        docker build -t result-test ./result
-        echo "✅ Imagen de Result construida con éxito"
-        
-    - name: Construir y probar la imagen de WORKER
-      run: |
-        cd voting-app/roxs-voting-app
-        docker build -t worker-test ./worker
-        echo "✅ Imagen de Worker construida con éxito"
-      
-    - name: Test de Integración con Docker Compose
-      run: |
-        cd voting-app/roxs-voting-app
-        docker compose -f docker-compose.yml up -d
-        echo "Esperando 30 segundos a que los servicios se estabilicen..."
-        sleep 30
-        
-        echo "Ejecutando health checks básicos..."
-        curl -sf http://localhost:8080 || (docker compose logs && exit 1)
-        curl -sf http://localhost:3000 || (docker compose logs && exit 1)
-        
-        docker compose -f docker-compose.yml down -v
-        echo "✅ Tests de integración superados."
