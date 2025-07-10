@@ -1,17 +1,19 @@
-name: Monitoreo - Health Check de Producción
+name: Monitoreo - Health Check de Staging
 
 on:
   schedule:
-    # Se ejecuta cada 15 minutos. Puedes ajustar el horario.
+    # Se ejecuta cada 15 minutos
     - cron: '*/15 * * * *'
   workflow_dispatch: # También permite iniciarlo manualmente
 
 jobs:
   check:
-    runs-on: ubuntu-latest # No necesita un self-hosted runner
+    runs-on: ubuntu-latest
     steps:
-      - name: Verificar si la página de Votación responde
-        run: curl -sf http://192.168.56.11:8082 || exit 1
+      - name: Verificar si la página de Votación (Staging) responde
+        # --- PUERTO CORRECTO ---
+        run: curl -sf http://192.168.56.11:5001 || exit 1
 
-      - name: Verificar si la página de Resultados responde
-        run: curl -sf http://192.168.56.11:3002 || exit 1
+      - name: Verificar si la página de Resultados (Staging) responde
+        # --- PUERTO CORRECTO ---
+        run: curl -sf http://192.168.56.11:5002 || exit 1
