@@ -1,4 +1,5 @@
 services:
+  # --- SERVICIOS DE LA APLICACIÓN ---
   vote:
     build: ./vote
     ports: ["8080:5000"]
@@ -41,8 +42,32 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+
+  # --- SERVICIOS DE MONITOREO ---
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    container_name: prometheus
+    ports: ["9091:9090"]
+    volumes: ["./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml"]
+    networks: [votenet]
+    depends_on: [postgres-exporter]
+  grafana:
+    image: grafana/grafana-oss:10.0.0
+    container_name: grafana
+    ports: ["3003:3000"]
+    depends_on: [prometheus]
+    networks: [votenet]
+  postgres-exporter:
+    image: quay.io/prometheuscommunity/postgres-exporter
+    container_name: postgres-exporter
+    environment:
+      DATA_SOURCE_NAME: "postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@database:5432/${DATABASE_NAME}?sslmode=disable"
+    networks: [votenet]
+    depends_on: [database]
+
 networks:
   votenet:
-    driver: bridge
+    name: david-votenet
+
 volumes:
   pgdata:
