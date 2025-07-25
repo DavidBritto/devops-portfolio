@@ -1,6 +1,6 @@
-# Bienvenido a mi Desafío #90DaysOfDevOps-with-Roxs
+# Bienvenido al proyecto #90DaysOfDevOps-with-Roxs
 
-¡Bienvenido a mi repositorio del desafío #90DaysOfDevOps! Aquí documento mi progreso diario, los conceptos que aprendo y los desafíos que supero.
+¡Este es mi repositorio del desafío! Aquí documento mi progreso diario, los conceptos que aprendo y los desafíos que supero.
 
 ## Sobre el Desafío
 
@@ -16,4 +16,6 @@ El desafío #90DaysOfDevOps es una iniciativa de Rossana Suarez que diseño este
 
 * [Semana 1: Fundamentos de Redes, Linux y Git](Semana-01/)
 * [Semana 2: Fundamentos de la Nube, AWS y sus Servicios](Semana-02/)
+* [Semana 3: CI/CD - Automatización de Pipelines con GitHub Actions](Semana-03/)
+* [Semana 4: Infraestructura como Código (IaC) con Terraform](Semana-04/)
 * ... (iré añadiendo las demás semanas)
