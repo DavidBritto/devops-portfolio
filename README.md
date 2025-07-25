@@ -14,8 +14,8 @@ El desafío #90DaysOfDevOps es una iniciativa de Rossana Suarez que diseño este
 
 ## Índice de Semanas
 
-* [Semana 1: Fundamentos de Redes, Linux y Git](Semana-01/)
-* [Semana 2: Fundamentos de la Nube, AWS y sus Servicios](Semana-02/)
-* [Semana 3: CI/CD - Automatización de Pipelines con GitHub Actions](Semana-03/)
-* [Semana 4: Infraestructura como Código (IaC) con Terraform](Semana-04/)
+* [Semana 1: Fundamentos de Redes, Linux y Git](daily-exercises/semana-1/)
+* [Semana 2: Fundamentos de la Nube, AWS y sus Servicios](daily-exercises/semana-2/)
+* [Semana 3: CI/CD - Automatización de Pipelines con GitHub Actions](daily-exercises/semana-3/)
+* [Semana 4: Infraestructura como Código (IaC) con Terraform](daily-exercises/semana-4/)
 * ... (iré añadiendo las demás semanas)
