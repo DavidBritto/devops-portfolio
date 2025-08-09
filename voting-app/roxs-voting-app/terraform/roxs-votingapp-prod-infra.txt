@@ -1,0 +1,21 @@
+# Infra resumen
+Proyecto   : roxs-votingapp
+Entorno    : prod
+Creado     : 2025-08-09 14:26
+
+[Tags]
+- CreatedAt: 2025-08-09 14:26
+- Environment: prod
+- ManagedBy: Terraform
+- Project: roxs-votingapp
+
+[Entorno]
+min_replicas   = 3
+max_replicas   = 10
+enable_logging = true
+
+[Herramientas]
+- Git
+- Linux
+- Docker
+- Terraform

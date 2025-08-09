@@ -1,7 +1,0 @@
-Infraestructura inicial generada con Terraform para el proyecto roxs-votingapp.
-Responsable: David Britto
-Herramientas aprendidas hasta ahora:
-- Git
-- Linux
-- Docker
-- Terraform
