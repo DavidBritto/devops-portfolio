@@ -1,75 +1,73 @@
 services:
+  # --- SERVICIOS DE LA APLICACIÓN ---
   vote:
     build: ./vote
-    ports:
-      - "8080:5000"
-    env_file:
-      - .env
-    networks:
-      - votenet
-    depends_on:
-      redis:
-        condition: service_healthy
+    ports: ["8080:5000"]
+    env_file: [.env]
+    networks: [votenet]
+    depends_on: { redis: { condition: service_healthy } }
     restart: on-failure
-
   result:
     build: ./result
-    ports:
-      - "3000:3000"
-    env_file:
-      - .env
-    networks:
-      - votenet
-    depends_on:
-      database:
-        condition: service_healthy
+    ports: ["3000:3000"]
+    env_file: [.env]
+    networks: [votenet]
+    depends_on: { database: { condition: service_healthy } }
     restart: on-failure
-
   worker:
     build: ./worker
-    env_file:
-      - .env
-    networks:
-      - votenet
-    depends_on:
-      database:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+    env_file: [.env]
+    networks: [votenet]
+    depends_on: { database: { condition: service_healthy }, redis: { condition: service_healthy } }
     restart: on-failure
-
   redis:
     image: "redis:7-alpine"
-    networks:
-      - votenet
+    networks: [votenet]
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
-
   database:
     image: "postgres:15-alpine"
     environment:
       POSTGRES_USER: ${DATABASE_USER}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
       POSTGRES_DB: ${DATABASE_NAME}
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    networks:
-      - votenet
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    networks: [votenet]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}"]
       interval: 10s
       timeout: 5s
       retries: 5
-      # --- ¡AQUÍ ESTÁ LA SOLUCIÓN FINAL! ---
-      # Le damos a la base de datos un período de gracia de 30 segundos para arrancar.
       start_period: 30s
+
+  # --- SERVICIOS DE MONITOREO ---
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    container_name: prometheus
+    ports: ["9091:9090"]
+    volumes: ["./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml"]
+    networks: [votenet]
+    depends_on: [postgres-exporter]
+  grafana:
+    image: grafana/grafana-oss:10.0.0
+    container_name: grafana
+    ports: ["3003:3000"]
+    depends_on: [prometheus]
+    networks: [votenet]
+  postgres-exporter:
+    image: quay.io/prometheuscommunity/postgres-exporter
+    container_name: postgres-exporter
+    environment:
+      DATA_SOURCE_NAME: "postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@database:5432/${DATABASE_NAME}?sslmode=disable"
+    networks: [votenet]
+    depends_on: [database]
 
 networks:
   votenet:
-    driver: bridge
+    name: david-votenet
 
 volumes:
   pgdata:
