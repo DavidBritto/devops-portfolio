@@ -1,10 +1,12 @@
 output "generated_file" {
-  description = "Nombre del archivo generado"
-  value       = local_file.infra_summary.filename
+  description = "Archivo generado"
+  value       = "${path.module}/${local.resource_prefix}-infra.txt"
 }
-
-output "preview_content" {
-  description = "Vista previa del contenido generado"
-  value       = substr(local_file.infra_summary.content, 0, 100)
+output "env_summary" {
+  description = "Resumen del entorno actual"
+  value = {
+    env          = var.environment
+    min_replicas = local.current_env.min_replicas
+    max_replicas = local.current_env.max_replicas
+  }
 }
-
