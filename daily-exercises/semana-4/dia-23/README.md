@@ -24,8 +24,6 @@ terraform/
     └── prod.tfvars
 ```
 
-> **Importante**: colocá también **`terraform_flow.png`** en esta misma carpeta del README para que el diagrama se vea.
-
 ---
 
 ## 📊 Diagrama de flujo
@@ -81,7 +79,7 @@ terraform apply -var-file="environments/staging.tfvars" -auto-approve
 terraform apply -var-file="environments/prod.tfvars" -auto-approve
 ```
 
-Al finalizar, deberías ver archivos como:
+Al finalizar, se obtienen archivos como:
 ```
 roxs-votingapp-dev-infra.txt
 roxs-votingapp-staging-infra.txt
@@ -117,7 +115,7 @@ enable_logging = true
 
 ---
 
-## ✅ Qué aprendiste hoy
+## ✅ Qué aprendi este dia:
 - Variables con validaciones (nombres, listas y entornos)
 - Locals para nombres, tags, fechas y settings por entorno
 - `.tfvars` por entorno (dev/staging/prod)
