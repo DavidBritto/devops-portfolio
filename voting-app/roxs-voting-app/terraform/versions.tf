@@ -1,5 +1,6 @@
 terraform {
   required_version = ">= 1.6"
+
   required_providers {
     local = {
       source  = "hashicorp/local"
@@ -8,6 +9,10 @@ terraform {
     time = {
       source  = "hashicorp/time"
       version = "~> 0.9"
+    }
+    docker = {
+      source  = "kreuzwerker/docker"
+      version = "~> 3.0"
     }
   }
 }
