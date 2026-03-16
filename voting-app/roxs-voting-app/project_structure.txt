@@ -1,0 +1,98 @@
+.
+├── load-testing
+│   └── k6.js
+├── monitoring
+│   ├── grafana
+│   │   ├── dashboards
+│   │   │   └── simple-dashboard.json
+│   │   ├── provisioning
+│   │   │   ├── dashboards
+│   │   │   │   └── dashboards.yml
+│   │   │   └── datasources
+│   │   │       └── datasources.yml
+│   │   └── grafana.yml
+│   └── prometheus.yml
+├── result
+│   ├── tests
+│   │   └── main.test.js
+│   ├── views
+│   │   ├── js
+│   │   │   ├── angular.min.js
+│   │   │   ├── app.js
+│   │   │   └── socket.io.js
+│   │   ├── stylesheets
+│   │   │   └── style.css
+│   │   └── index.html
+│   ├── Dockerfile
+│   ├── main.js
+│   ├── .nvmrc
+│   ├── package.json
+│   └── package-lock.json
+├── scripts
+│   ├── backup.sh
+│   ├── deploy.sh
+│   └── health-check.sh
+├── terraform
+│   ├── environments                    # .tfvars por entorno
+│   │   ├── dev.tfvars
+│   │   ├── staging.tfvars
+│   │   └── prod.tfvars
+│   ├── examples                        # Ejemplos de uso del módulo
+│   │   ├── simple-webapp               # Uso mínimo en dev
+│   │   │   ├── main.tf
+│   │   │   └── variables.tf
+│   │   └── full-stack                  # Multi-entorno con locals y outputs completos
+│   │       ├── main.tf
+│   │       ├── variables.tf
+│   │       ├── dev.tfvars
+│   │       └── staging.tfvars
+│   ├── modules
+│   │   └── docker-webapp               # Módulo reutilizable — stack completo
+│   │       ├── main.tf
+│   │       ├── variables.tf
+│   │       ├── outputs.tf
+│   │       ├── versions.tf             # Requisitos: calxus/docker ~> 3.0
+│   │       └── README.md
+│   ├── services                        # Configuraciones YAML de servicios
+│   │   ├── database-config.yaml
+│   │   ├── redis-config.yaml
+│   │   ├── result-config.yaml
+│   │   ├── vote-config.yaml
+│   │   ├── worker-config.yaml
+│   │   └── README.md
+│   ├── main.tf                         # Root module — invoca docker-webapp
+│   ├── variables.tf                    # Variables base del proyecto
+│   ├── variables-docker.tf             # Variables de puertos y credenciales
+│   ├── variables-advanced.tf           # Variables de ejercicios avanzados
+│   ├── locals.tf                       # Locals: prefix, tags, env_settings
+│   ├── locals-advanced.tf
+│   ├── outputs.tf                      # Outputs consolidados
+│   ├── outputs-advanced.tf
+│   ├── versions.tf                     # Provider calxus/docker ~> 3.0
+│   ├── terraform.tfvars                # Valores por defecto (dev)
+│   ├── advanced-exercises.tf
+│   ├── nginx.conf
+│   └── README.md
+├── vote
+│   ├── templates
+│   │   └── index.html
+│   ├── tests
+│   │   ├── lint_test.py
+│   │   └── test_app.py
+│   ├── app.py
+│   ├── Dockerfile
+│   └── requirements.txt
+├── worker
+│   ├── tests
+│   │   └── main.test.js
+│   ├── Dockerfile
+│   ├── main.js
+│   ├── .nvmrc
+│   ├── package.json
+│   └── package-lock.json
+├── docker-compose.yml
+├── docker-compose.staging.yml
+├── docker-compose.prod.yml
+├── .env
+├── project_structure.txt               # este archivo
+└── startdocker.sh

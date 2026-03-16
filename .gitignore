@@ -26,3 +26,36 @@ Thumbs.db
 
 # --- Archivos de variables de entorno ---
 .env
+
+# ---Archivos de Terraform---
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfplan
+.terraform.lock.hcl
+# --- Archivos de Docker ---
+docker-compose.override.yml
+docker-compose.prod.yml
+docker-compose.dev.yml
+# --- Archivos de configuración de Visual Studio Code ---
+.vscode/
+.vscode/settings.json
+.vscode/tasks.json
+.vscode/launch.json
+
+# Ignorar archivos de configuración de MCP (GitHub Copilot)
+.vscode/mcp.json
+.vscode/mcp.lock.json
+
+# Ignorar archivos de amazonq
+
+.amazonq/rules/memory-bank
+guidelines.md
+product.md
+structure.md
+tech.md
+
+# Ignorar Claude
+/home/david/git/devops-porfolio/CLAUDE.md
+CLAUDE.md

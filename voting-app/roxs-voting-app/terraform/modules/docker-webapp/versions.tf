@@ -3,12 +3,8 @@ terraform {
 
   required_providers {
     docker = {
-      source  = "calxus/docker" # Alternativa mantenida activamente
+      source  = "calxus/docker"
       version = "~> 3.0"
     }
   }
 }
-
-#provider "docker" {
-
-#}
