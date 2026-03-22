@@ -1,0 +1,122 @@
+name: Terraform Destroy - Limpieza con LocalStack
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Ambiente a destruir'
+        required: true
+        type: choice
+        options: [dev, staging, prod]
+      confirm:
+        description: 'Escriba DESTROY para confirmar'
+        required: true
+        type: string
+
+env:
+  TF_VERSION: 1.6.0
+  AWS_ACCESS_KEY_ID: test
+  AWS_SECRET_ACCESS_KEY: test
+  AWS_DEFAULT_REGION: us-east-1
+  WORKING_DIR: voting-app/roxs-voting-app/terraform
+
+jobs:
+  destroy:
+    name: Destruir Infraestructura
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+
+    services:
+      localstack:
+        image: localstack/localstack:3.0
+        ports:
+          - 4566:4566
+        env:
+          SERVICES: s3,ec2,iam,lambda,cloudformation,logs,events
+          DEBUG: 1
+          PERSISTENCE: 1
+        options: >-
+          --health-cmd "curl -f http://localhost:4566/_localstack/health || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - name: Validar confirmación
+      run: |
+        if [ "${{ github.event.inputs.confirm }}" != "DESTROY" ]; then
+          echo "Confirmación incorrecta. Debe escribir DESTROY"
+          exit 1
+        fi
+        echo "Confirmación válida para: ${{ github.event.inputs.environment }}"
+
+    - name: Checkout código
+      uses: actions/checkout@v4
+
+    - name: Configurar permisos de scripts
+      run: |
+        chmod +x ${{ env.WORKING_DIR }}/scripts/setup-localstack.sh
+        chmod +x ${{ env.WORKING_DIR }}/scripts/wait-for-localstack.sh
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
+
+    - name: Setup AWS CLI
+      run: |
+        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+        unzip awscliv2.zip
+        sudo ./aws/install
+
+    - name: Configurar LocalStack
+      working-directory: ${{ env.WORKING_DIR }}
+      run: |
+        export AWS_ENDPOINT_URL=http://localhost:4566
+        ./scripts/setup-localstack.sh
+
+    - name: Terraform Init
+      working-directory: ${{ env.WORKING_DIR }}
+      run: |
+        terraform init \
+          -backend-config="endpoints={s3=\"http://localhost:4566\"}" \
+          -backend-config="access_key=test" \
+          -backend-config="secret_key=test" \
+          -backend-config="skip_credentials_validation=true" \
+          -backend-config="skip_metadata_api_check=true" \
+          -backend-config="skip_region_validation=true" \
+          -backend-config="skip_requesting_account_id=true" \
+          -backend-config="force_path_style=true" \
+          -reconfigure
+      env:
+        AWS_ENDPOINT_URL: http://localhost:4566
+
+    - name: Seleccionar workspace
+      working-directory: ${{ env.WORKING_DIR }}
+      run: terraform workspace select ${{ github.event.inputs.environment }}
+      env:
+        AWS_ENDPOINT_URL: http://localhost:4566
+
+    - name: Plan destroy
+      working-directory: ${{ env.WORKING_DIR }}
+      run: |
+        terraform plan -destroy \
+          -var-file="environments/${{ github.event.inputs.environment }}.tfvars" \
+          -out=destroy.tfplan
+      env:
+        AWS_ENDPOINT_URL: http://localhost:4566
+
+    - name: Mostrar qué se destruye
+      working-directory: ${{ env.WORKING_DIR }}
+      run: terraform show -no-color destroy.tfplan
+
+    - name: Destruir infraestructura
+      working-directory: ${{ env.WORKING_DIR }}
+      run: terraform apply -auto-approve destroy.tfplan
+      env:
+        AWS_ENDPOINT_URL: http://localhost:4566
+
+    - name: Confirmar destrucción
+      run: |
+        echo "Infraestructura de ${{ github.event.inputs.environment }} destruida"
+        aws --endpoint-url=http://localhost:4566 s3 ls s3://terraform-state-roxs/ --recursive || echo "Workspace limpio"
