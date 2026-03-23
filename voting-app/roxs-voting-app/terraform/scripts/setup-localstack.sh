@@ -11,7 +11,7 @@ export AWS_ENDPOINT_URL="http://localhost:4566"
 
 echo "Configurando LocalStack para Terraform..."
 
-./wait-for-localstack.sh
+"$(dirname "$0")/wait-for-localstack.sh"
 
 echo "Creando bucket S3 para estado de Terraform..."
 aws --endpoint-url=$LOCALSTACK_ENDPOINT s3 mb s3://$BUCKET_NAME || echo "Bucket ya existe"
