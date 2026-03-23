@@ -59,3 +59,20 @@ tech.md
 # Ignorar Claude
 /home/david/git/devops-porfolio/CLAUDE.md
 CLAUDE.md
+
+# Estado local de Terraform - NUNCA commitear
+terraform.tfstate
+terraform.tfstate.backup
+*.tfstate
+*.tfstate.*
+
+# Variables con secrets
+terraform.tfvars
+
+# Directorio de providers
+.terraform/
+.terraform.lock.hcl
+
+# Planes
+*.tfplan
+tfplan

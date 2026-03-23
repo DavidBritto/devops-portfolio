@@ -101,7 +101,7 @@ module "webapp" {
 
   app_name      = "roxs-web"
   image_name    = "nginx:1.25"
-  external_port = 8080
+  external_port = 8082
 }
 
 # Acceder a outputs del módulo
