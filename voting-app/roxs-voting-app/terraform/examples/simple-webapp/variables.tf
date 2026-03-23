@@ -8,5 +8,4 @@ variable "database_password" {
   description = "Contraseña de la base de datos"
   type        = string
   sensitive   = true
-  default     = "dev_password_123"
 }
