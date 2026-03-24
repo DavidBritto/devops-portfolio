@@ -1,0 +1,42 @@
+COST ESTIMATION REPORT
+======================
+    
+Application: roxs-votingapp
+Environment: dev
+Generated: 2026-03-15T20:06:48Z
+    
+Current Environment Costs:
+--------------------------
+Instance Type: t3.micro
+Min Replicas: 1
+Max Replicas: 2
+Monthly Cost (min): ${local.current_environment_config.monthly_cost}
+Storage: 20 GB
+    
+All Environments Comparison:
+----------------------------
+    DEV:
+  - Instance: t3.micro
+  - Replicas: 1-2
+  - Monthly Cost: ${config.monthly_cost}
+  - Storage: 20 GB
+  - CDN: ❌
+  - WAF: ❌
+    
+    PROD:
+  - Instance: t3.medium
+  - Replicas: 3-10
+  - Monthly Cost: ${config.monthly_cost}
+  - Storage: 100 GB
+  - CDN: ✅
+  - WAF: ✅
+    
+    STAGING:
+  - Instance: t3.small
+  - Replicas: 2-4
+  - Monthly Cost: ${config.monthly_cost}
+  - Storage: 50 GB
+  - CDN: ❌
+  - WAF: ❌
+    
+    Total Monthly Cost (all environments): ${sum([for env, config in local.environment_configs : config.monthly_cost])}

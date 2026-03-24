@@ -1,117 +1,108 @@
-🚀 Desafío Final Semana 1 - Roxs Voting App
-Este repositorio documenta la solución al desafío final de la primera semana del programa #90DaysOfDevOps. El objetivo fue levantar y orquestar una aplicación de votación distribuida (Roxs Voting App) utilizando un stack de herramientas de DevOps como Vagrant y Ansible.
+# Despliegue de Aplicación de Votación con Vagrant y Ansible
 
-Repositorio Base Original: roxsross/roxs-devops-project90
+Este proyecto documenta el despliegue de una aplicación de votación distribuida ("Roxs Voting App") como solución al desafío final de la Semana 1 del programa **#90DaysOfDevOpsWithRoxs**.
 
-🎯 Arquitectura de la Aplicación
-La aplicación se compone de varios microservicios que trabajan en conjunto:
+El objetivo principal fue orquestar una arquitectura de microservicios (Python, Node.js, Redis, PostgreSQL) en un entorno virtualizado, utilizando **Vagrant** para la creación de la infraestructura y **Ansible** para la gestión de la configuración.
 
-Vote (Python/Flask): Interfaz web para que los usuarios emitan votos.
 
-Redis: Base de datos en memoria que actúa como una cola temporal para los votos.
 
-Worker (Node.js): Proceso de fondo que toma los votos de Redis y los guarda de forma permanente en PostgreSQL.
+---
+## 🛠️ Stack Tecnológico
+* **Orquestación de Entorno:** Vagrant
+* **Gestión de Configuración:** Ansible
+* **Aplicaciones:** Python (Flask), Node.js
+* **Bases de Datos:** PostgreSQL, Redis
+* **Scripting:** Bash
 
-PostgreSQL: Base de datos relacional que almacena el conteo final de los votos.
+---
+## 🚀 Cómo Ejecutar el Proyecto
 
-Result (Node.js): Interfaz web que lee los datos de PostgreSQL y muestra los resultados en tiempo real.
+#### **Prerrequisitos:**
+* Vagrant
+* VirtualBox
+* Ansible
 
-🧗 Desafíos Afrontados y Lecciones Aprendidas
-El camino para levantar esta aplicación fue un ejercicio de depuración intensivo y realista, demostrando que la teoría a menudo choca con la práctica. Los principales obstáculos superados fueron:
+#### **Pasos:**
+1.  **Clonar el repositorio:**
+    ```bash
+    git clone [https://github.com/DavidBritto/devops-portfolio.git](https://github.com/DavidBritto/devops-portfolio.git)
+    ```
+2.  **Levantar la Máquina Virtual y Provisionar:**
+    Navega a la carpeta de este proyecto y ejecuta:
+    ```bash
+    vagrant up
+    ```
+    Este comando creará la VM (Ubuntu 22.04) con una IP `192.168.56.10`, redireccionará los puertos necesarios y ejecutará el playbook de Ansible para instalar todas las dependencias de software.
 
-Errores de Permisos en Ansible (become_user): Los intentos iniciales de configurar PostgreSQL con los módulos nativos de Ansible fallaron repetidamente con errores de chmod: invalid mode. Esto se debió a una incompatibilidad entre la forma en que Ansible intenta escalar privilegios de forma segura (usando ACLs) y la configuración mínima de la máquina virtual bento/ubuntu-24.04. Se intentaron varias soluciones, como cambiar el become_method a su, lo que a su vez generó errores de timeout al esperar una contraseña.
+3.  **Configurar la Base de Datos (Paso Manual):**
+    Debido a las particularidades de los permisos en la VM, la configuración inicial de PostgreSQL se realiza manualmente.
+    ```bash
+    vagrant ssh
+    sudo -i -u postgres psql
+    ```
+    Dentro de la consola de `psql`, ejecuta:
+    ```sql
+    ALTER USER postgres WITH PASSWORD 'postgres';
+    CREATE DATABASE votes;
+    \q
+    ```
+    Sal de la sesión de `postgres` y de la VM.
 
-Configuraciones "Hardcodeadas" vs. Entorno: Se descubrió que las aplicaciones estaban diseñadas para un entorno de contenedores, buscando nombres de host como database y redis. La solución fue modificar el código fuente y usar variables de entorno para apuntar a localhost, adaptando la aplicación a nuestro entorno de máquina virtual única.
+4.  **Iniciar los Servicios de la Aplicación:**
+    Se ha creado un script de arranque para gestionar todos los servicios. Conéctate a la VM y ejecútalo:
+    ```bash
+    vagrant ssh
+    cd /vagrant/roxs-voting-app/  # O la ruta correcta a la app
+    chmod +x start_all.sh
+    ./start_all.sh
+    ```
+5.  **Acceder a la Aplicación:**
+    ¡Listo! Abre tu navegador y visita:
+    * **Página de Votación:** `http://localhost:8080`
+    * **Página de Resultados:** `http://localhost:3000`
 
-Conflicto de Puertos (EADDRINUSE): El servicio Worker y el servicio Result intentaban usar el mismo puerto (3000). La solución fue editar el código del Worker para que utilizara un puerto diferente para su servidor de métricas, resolviendo el conflicto.
+---
+## 🧠 Desafíos Técnicos y Aprendizajes Clave
 
-Entorno Interactivo vs. No Interactivo: Se demostró que los scripts de inicio fallaban cuando se ejecutaban remotamente a través de vagrant ssh -c "..." (una sesión no interactiva), pero funcionaban perfectamente cuando se ejecutaban manualmente dentro de una sesión vagrant ssh (interactiva). Esto nos llevó a la solución final de crear un script de arranque que se ejecuta directamente dentro de la VM.
+Este proyecto presentó varios desafíos del mundo real, cuya resolución fue clave para el aprendizaje:
 
-🛠️ Paso a Paso de la Solución Final
-Este es el proceso consolidado para levantar el entorno desde cero.
+* **Gestión de Privilegios en Ansible:** Se diagnosticó un problema de escalada de privilegios (`become_user`) con el módulo de PostgreSQL en una VM mínima. Como solución pragmática, se optó por automatizar la instalación de la base de datos con Ansible y documentar la configuración inicial como un paso manual controlado.
 
-Clonar y Preparar el Entorno:
+* **Adaptación de Aplicaciones a Entornos:** Se refactorizó el código fuente de los servicios para que las direcciones de la base de datos y Redis no estuvieran "hardcodeadas", adaptándolas para funcionar en un entorno de VM en lugar de un entorno de contenedores.
 
-Clonar el repositorio base.
+* **Diagnóstico de Conflictos de Red:** Se identificó y resolvió un conflicto de puertos (`EADDRINUSE`) entre dos de los servicios Node.js, modificando la configuración de uno de ellos para asegurar que cada servicio escuchara en un puerto único.
 
-Crear la estructura de carpetas roxs-devops-project90/roxs-voting-app/.
+* **Automatización del Arranque de Servicios:** Se desarrolló un script de arranque en Bash (`start_all.sh`) para orquestar el inicio de los 5 microservicios en el orden correcto y en segundo plano, asegurando que el stack completo se inicie con un solo comando.
 
-Crear un Vagrantfile en la raíz para definir la VM, la red privada (192.168.56.10) y la redirección de puertos (8080 -> 5000, 3000 -> 3000).
+---
+#### Contenido del Script `start_all.sh`
+<details>
+  <summary>Haz clic para ver el código</summary>
+  
+  ```bash
+  #!/bin/bash
 
-Automatizar Dependencias con Ansible:
+  # --- Limpieza y Arranque de Servicios ---
 
-Crear un playbook.yml que se encarga de instalar todo el software base: redis, postgresql, python3, pip, nodejs y npm.
+  echo "--- Limpiando procesos anteriores ---"
+  pkill -f 'python3 app.py' || true
+  pkill -f 'node main.js' || true
 
-El playbook también instala las dependencias de cada aplicación usando los módulos pip y npm.
+  echo "--- Iniciando servicios de la Voting App ---"
 
-Importante: La configuración de la base de datos PostgreSQL se omite intencionadamente del playbook debido a los errores de permisos.
+  # VOTE APP
+  echo "▶️  Iniciando Vote App..."
+  cd /vagrant/roxs-voting-app/vote
+  DATABASE_HOST=localhost DATABASE_USER=postgres DATABASE_PASSWORD=postgres python3 app.py &
 
-Ejecutar la Automatización Parcial:
+  # WORKER APP
+  echo "▶️  Iniciando Worker App..."
+  cd /vagrant/roxs-voting-app/worker
+  REDIS_HOST=localhost DATABASE_HOST=localhost node main.js &
 
-Levantar la máquina virtual y ejecutar el playbook con vagrant up. Este proceso termina sin errores.
+  # RESULT APP
+  echo "▶️  Iniciando Result App..."
+  cd /vagrant/roxs-voting-app/result
+  REDIS_HOST=localhost DATABASE_HOST=localhost node main.js &
 
-Configuración Manual de PostgreSQL:
-
-Conectarse a la VM con vagrant ssh.
-
-Convertirse en el superusuario de la base de datos con sudo -i -u postgres.
-
-Entrar a la consola de psql.
-
-Ejecutar los comandos SQL necesarios para crear la base de datos y configurar el usuario:
-
-ALTER USER postgres WITH PASSWORD 'postgres';
-CREATE DATABASE votes;
-
-Ajustes al Código Fuente:
-
-Servicio Vote (vote/app.py): Se modificó la última línea para que la aplicación corra en el puerto 5000 en lugar del privilegiado 80.
-
-Servicio Worker (worker/main.js): Se modificó la variable port de 3000 a 3001 para resolver el conflicto de puertos.
-
-✨ Automatización Final: Script de Arranque
-Para simplificar el inicio de todos los servicios, se creó un script start_all.sh directamente dentro de la máquina virtual (en la carpeta /vagrant/).
-
-start_all.sh
-#!/bin/bash
-
-# --- Limpieza y Arranque de Servicios ---
-
-echo "--- Limpiando procesos anteriores ---"
-pkill -f 'python3 app.py' || true
-pkill -f 'node main.js' || true
-
-echo "--- Iniciando servicios de la Voting App ---"
-
-# VOTE APP
-echo "▶️  Iniciando Vote App..."
-cd /vagrant/roxs-voting-app/vote
-DATABASE_HOST=localhost DATABASE_USER=postgres DATABASE_PASSWORD=postgres python3 app.py &
-
-# WORKER APP
-echo "▶️  Iniciando Worker App..."
-cd /vagrant/roxs-voting-app/worker
-REDIS_HOST=localhost DATABASE_HOST=localhost node main.js &
-
-# RESULT APP
-echo "▶️  Iniciando Result App..."
-cd /vagrant/roxs-voting-app/result
-REDIS_HOST=localhost DATABASE_HOST=localhost node main.js &
-
-echo "✅ ¡Servicios lanzados!"
-
-Ejecución Final
-Conectarse a la VM: vagrant ssh
-
-Navegar a la raíz: cd /vagrant/
-
-Dar permisos al script: chmod +x start_all.sh
-
-Ejecutar el script: ./start_all.sh
-
-✅ Resultado
-Una vez ejecutado el script, la aplicación es accesible desde el navegador del anfitrión:
-
-Página de Votación: http://localhost:8080
-
-Página de Resultados: http://localhost:3000
+  echo "✅ ¡Servicios lanzados!"

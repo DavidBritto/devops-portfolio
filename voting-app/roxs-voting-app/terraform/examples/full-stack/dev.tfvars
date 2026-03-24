@@ -1,0 +1,5 @@
+project_name      = "roxs-votingapp"
+environment       = "dev"
+database_name     = "votes"
+database_user     = "postgres"
+database_password = "dev_password_123"

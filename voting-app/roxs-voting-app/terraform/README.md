@@ -13,8 +13,12 @@ Integra Terraform en el proyecto `roxs-votingapp` y genera un archivo local simu
 ## 🚀 Comandos Terraform
 
 ```bash
-terraform init           # Inicializa Terraform
-terraform validate       # Valida sintaxis
-terraform plan           # Muestra plan de ejecución
-terraform apply          # Aplica cambios
-terraform output         # Muestra resultados
+terraform init                                                 # Inicializa Terraform
+terraform validate                                             # Valida sintaxis
+terraform plan -var-file="environments/dev.tfvars" -out=tfplan # Muestra plan de ejecución
+terraform apply "tfplan"                                       # Aplica cambios
+terraform output                                               # Muestra resultados
+docker ps
+curl http://localhost:8080
+
+

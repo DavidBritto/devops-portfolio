@@ -1,12 +1,21 @@
-output "generated_file" {
-  description = "Archivo generado"
-  value       = "${path.module}/${local.resource_prefix}-infra.txt"
+output "application_urls" {
+  description = "URLs de acceso a cada servicio (sin credenciales)"
+  value       = module.docker_webapp.application_urls
 }
+
+output "postgres_connection_string" {
+  description = "Connection string completa de PostgreSQL"
+  value       = module.docker_webapp.postgres_connection_string
+  sensitive   = true
+}
+
 output "env_summary" {
   description = "Resumen del entorno actual"
   value = {
-    env          = var.environment
+    environment  = var.environment
     min_replicas = local.current_env.min_replicas
     max_replicas = local.current_env.max_replicas
+    prefix       = local.resource_prefix
+    created_at   = local.created_at
   }
 }

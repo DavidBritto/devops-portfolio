@@ -12,10 +12,10 @@ jobs:
     steps:
     - name: Checkout del código
       uses: actions/checkout@v4
-      
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
-      
+
     - name: Construir y probar imágenes (sin test de integración)
       run: |
         echo "Construyendo imágenes para verificar que no hay errores..."

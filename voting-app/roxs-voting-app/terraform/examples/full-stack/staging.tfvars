@@ -1,0 +1,5 @@
+project_name      = "roxs-votingapp"
+environment       = "staging"
+database_name     = "votes"
+database_user     = "postgres"
+database_password = "staging_password_456"

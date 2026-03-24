@@ -1,7 +1,7 @@
 variable "database_name" {
   description = "Nombre de la base de datos"
   type        = string
-  default     = "voting_app"
+  default     = "votes"
 }
 
 variable "database_user" {
@@ -33,4 +33,16 @@ variable "nginx_external_port" {
   description = "Puerto externo para Nginx"
   type        = number
   default     = 8080
+}
+
+variable "vote_external_port" {
+  description = "Puerto externo para la aplicación de votación"
+  type        = number
+  default     = 8081
+}
+
+variable "result_external_port" {
+  description = "Puerto externo para la aplicación de resultados"
+  type        = number
+  default     = 3000
 }

@@ -1,0 +1,175 @@
+name: Terraform CI - Validación con LocalStack
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'voting-app/roxs-voting-app/terraform/**.tf'
+      - 'voting-app/roxs-voting-app/terraform/**.tfvars'
+      - '.github/workflows/terraform-**.yml'
+
+env:
+  TF_VERSION: 1.9.8
+  AWS_ACCESS_KEY_ID: test
+  AWS_SECRET_ACCESS_KEY: test
+  AWS_DEFAULT_REGION: us-east-1
+  WORKING_DIR: voting-app/roxs-voting-app/terraform
+
+jobs:
+  validate:
+    name: Validar Terraform
+    runs-on: ubuntu-latest
+
+    services:
+      localstack:
+        image: localstack/localstack:3.0
+        ports:
+          - 4566:4566
+        env:
+          SERVICES: s3,ec2,iam,lambda,cloudformation,logs,events
+          DEBUG: 1
+          PERSISTENCE: 1
+        options: >-
+          --health-cmd "curl -f http://localhost:4566/_localstack/health || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v4
+
+    - name: Configurar permisos de scripts
+      run: |
+        chmod +x ${{ env.WORKING_DIR }}/scripts/setup-localstack.sh
+        chmod +x ${{ env.WORKING_DIR }}/scripts/wait-for-localstack.sh
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
+
+    - name: Setup AWS CLI
+      run: |
+        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+        unzip awscliv2.zip
+        sudo ./aws/install --update
+
+    - name: Configurar LocalStack
+      working-directory: ${{ env.WORKING_DIR }}
+      run: |
+        export AWS_ENDPOINT_URL=http://localhost:4566
+        ./scripts/setup-localstack.sh
+
+    - name: Verificar formato
+      working-directory: ${{ env.WORKING_DIR }}
+      run: terraform fmt -check -recursive
+
+    - name: Terraform Init
+      working-directory: ${{ env.WORKING_DIR }}
+      run: |
+        terraform init \
+          -backend-config="endpoints={s3=\"http://localhost:4566\",sts=\"http://localhost:4566\",iam=\"http://localhost:4566\"}" \
+          -backend-config="access_key=test" \
+          -backend-config="secret_key=test" \
+          -backend-config="skip_credentials_validation=true" \
+          -backend-config="skip_metadata_api_check=true" \
+          -backend-config="skip_region_validation=true" \
+          -backend-config="skip_requesting_account_id=true" \
+          -backend-config="use_path_style=true" \
+          -reconfigure
+      env:
+        AWS_ENDPOINT_URL: http://localhost:4566
+
+    - name: Validar sintaxis
+      working-directory: ${{ env.WORKING_DIR }}
+      run: terraform validate
+
+  plan:
+    name: Plan por Ambiente
+    runs-on: ubuntu-latest
+    needs: validate
+    strategy:
+      matrix:
+        environment: [dev, staging]
+
+    services:
+      localstack:
+        image: localstack/localstack:3.0
+        ports:
+          - 4566:4566
+        env:
+          SERVICES: s3,ec2,iam,lambda,cloudformation,logs,events
+          DEBUG: 1
+          PERSISTENCE: 1
+        options: >-
+          --health-cmd "curl -f http://localhost:4566/_localstack/health || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v4
+
+    - name: Configurar permisos de scripts
+      run: |
+        chmod +x ${{ env.WORKING_DIR }}/scripts/setup-localstack.sh
+        chmod +x ${{ env.WORKING_DIR }}/scripts/wait-for-localstack.sh
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
+
+    - name: Setup AWS CLI
+      run: |
+        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+        unzip awscliv2.zip
+        sudo ./aws/install --update
+
+    - name: Configurar LocalStack
+      working-directory: ${{ env.WORKING_DIR }}
+      run: |
+        export AWS_ENDPOINT_URL=http://localhost:4566
+        ./scripts/setup-localstack.sh
+
+    - name: Terraform Init
+      working-directory: ${{ env.WORKING_DIR }}
+      run: |
+        terraform init \
+          -backend-config="endpoints={s3=\"http://localhost:4566\",sts=\"http://localhost:4566\",iam=\"http://localhost:4566\"}" \
+          -backend-config="access_key=test" \
+          -backend-config="secret_key=test" \
+          -backend-config="skip_credentials_validation=true" \
+          -backend-config="skip_metadata_api_check=true" \
+          -backend-config="skip_region_validation=true" \
+          -backend-config="skip_requesting_account_id=true" \
+          -backend-config="use_path_style=true" \
+          -reconfigure
+      env:
+        AWS_ENDPOINT_URL: http://localhost:4566
+
+    - name: Seleccionar workspace
+      working-directory: ${{ env.WORKING_DIR }}
+      run: |
+        terraform workspace select ${{ matrix.environment }} || \
+        terraform workspace new ${{ matrix.environment }}
+      env:
+        AWS_ENDPOINT_URL: http://localhost:4566
+
+    - name: Generar plan
+      working-directory: ${{ env.WORKING_DIR }}
+      run: |
+        terraform plan \
+          -var-file="environments/${{ matrix.environment }}.tfvars" \
+          -out="${{ matrix.environment }}.tfplan"
+      env:
+        AWS_ENDPOINT_URL: http://localhost:4566
+
+    - name: Subir plan como artefacto
+      uses: actions/upload-artifact@v4
+      with:
+        name: tfplan-${{ matrix.environment }}
+        path: ${{ env.WORKING_DIR }}/${{ matrix.environment }}.tfplan
+        retention-days: 1

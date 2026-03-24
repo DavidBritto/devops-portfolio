@@ -1,0 +1,77 @@
+MICROSERVICES DEPENDENCY MAP
+============================
+    
+Environment: dev
+Generated: 2026-03-15T20:06:48Z
+    
+Service Dependencies:
+---------------------
+    
+📦 DATABASE (postgres)
+   URL: http://database:5432
+   Replicas: 1
+   Resources: 100m CPU, 512Mi Memory
+       
+   Depends on:
+          └─ (no dependencies)
+          
+   Used by:
+                 └─ result
+          └─ worker
+              
+    
+📦 REDIS (redis)
+   URL: http://redis:6379
+   Replicas: 1
+   Resources: 100m CPU, 256Mi Memory
+       
+   Depends on:
+          └─ (no dependencies)
+          
+   Used by:
+                 └─ vote
+          └─ worker
+              
+    
+📦 RESULT (nodejs)
+   URL: http://result:3000
+   Replicas: 2
+   Resources: 100m CPU, 512Mi Memory
+       
+   Depends on:
+                 └─ database
+                 
+   Used by:
+          └─ (no dependents)
+       
+    
+📦 VOTE (python)
+   URL: http://vote:5000
+   Replicas: 2
+   Resources: 200m CPU, 512Mi Memory
+       
+   Depends on:
+                 └─ redis
+                 
+   Used by:
+          └─ (no dependents)
+       
+    
+📦 WORKER (java)
+   URL: http://worker:8080
+   Replicas: 1
+   Resources: 500m CPU, 1024Mi Memory
+       
+   Depends on:
+                 └─ redis
+          └─ database
+                 
+   Used by:
+          └─ (no dependents)
+       
+    
+Deployment Order (based on dependencies):
+-----------------------------------------
+1. database, redis
+2. result, vote
+3. worker
