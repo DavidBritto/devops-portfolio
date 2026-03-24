@@ -79,7 +79,7 @@ jobs:
       working-directory: ${{ env.WORKING_DIR }}
       run: |
         terraform init \
-          -backend-config="endpoints={s3=\"http://localhost:4566\"}" \
+          -backend-config="endpoints={s3=\"http://localhost:4566\",sts=\"http://localhost:4566\",iam=\"http://localhost:4566\"}" \
           -backend-config="access_key=test" \
           -backend-config="secret_key=test" \
           -backend-config="skip_credentials_validation=true" \
