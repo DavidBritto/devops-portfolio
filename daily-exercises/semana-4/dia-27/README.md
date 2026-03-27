@@ -1,22 +1,124 @@
 # Día 27 — CI/CD con Terraform + LocalStack + S3 Backend
 
-## Descripción
+## 📋 Descripción
 
 Implementación de un pipeline completo de **CI/CD para Infrastructure as Code** usando:
 
-- **LocalStack** para simular servicios AWS dentro del runner de GitHub Actions
+- **LocalStack** para simular servicios AWS localmente
 - **Amazon S3** (vía LocalStack) como backend remoto para el estado de Terraform
 - **GitHub Actions** para automatizar validación y despliegue
 - **Terraform Workspaces** para gestionar múltiples ambientes (dev, staging, prod)
 
 ---
 
-## Conceptos Clave
+## 🧠 Conceptos Clave
 
-### LocalStack como service container en CI
+### LocalStack
+Plataforma que simula servicios de AWS en tu máquina local. Permite desarrollar y testear aplicaciones cloud **sin costos, sin credenciales reales y sin latencia de red**.
 
-En lugar de mockear las llamadas a AWS, LocalStack corre como un contenedor real dentro del runner de GitHub Actions:
+Servicios utilizados en este proyecto:
+```
+s3, ec2, iam, lambda, cloudformation, logs, events
+```
 
+### S3 como Terraform Backend
+En lugar de guardar `terraform.tfstate` localmente, se almacena en un bucket S3. Esto permite:
+- Estado compartido entre el equipo
+- Versionado automático del archivo de estado
+- Acceso desde cualquier pipeline de CI/CD
+- Recuperación ante fallos
+
+### La combinación perfecta para desarrollo
+```
+LocalStack simula S3 → Terraform usa ese S3 como backend → CI/CD consume el backend → sin costos reales
+```
+
+---
+
+## 🗂️ Estructura del Proyecto
+
+```
+terraform-cicd-localstack/
+├── .github/
+│   └── workflows/
+│       ├── terraform-ci.yml        # Pipeline de validación (PR)
+│       ├── terraform-cd.yml        # Pipeline de despliegue (merge a main)
+│       └── terraform-destroy.yml   # Pipeline de limpieza (manual)
+├── docker-compose.localstack.yml   # Configuración de LocalStack
+├── scripts/
+│   ├── setup-localstack.sh         # Crea y configura el bucket S3
+│   └── wait-for-localstack.sh      # Espera hasta que LocalStack esté listo
+├── environments/
+│   ├── dev.tfvars
+│   ├── staging.tfvars
+│   └── prod.tfvars
+├── modules/
+│   ├── docker-webapp/
+│   └── s3-backend/
+├── backend.tf
+├── main.tf
+├── variables.tf
+└── outputs.tf
+```
+
+---
+
+## ⚙️ Configuración de LocalStack
+
+LocalStack corre como un servicio Docker, exponiendo todos los endpoints de AWS en el puerto `4566`.
+
+```yaml
+# docker-compose.localstack.yml
+services:
+  localstack:
+    image: localstack/localstack:3.0
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=s3,ec2,iam,lambda,cloudformation,logs,events
+      - PERSISTENCE=1        # Los datos sobreviven reinicios
+      - DEBUG=1
+```
+
+### Scripts de soporte
+
+**`setup-localstack.sh`** — Espera a LocalStack y crea el bucket S3 para el estado:
+```bash
+aws --endpoint-url=http://localhost:4566 s3 mb s3://terraform-state-roxs
+aws --endpoint-url=http://localhost:4566 s3api put-bucket-versioning \
+  --bucket terraform-state-roxs \
+  --versioning-configuration Status=Enabled
+```
+
+**`wait-for-localstack.sh`** — Polling hasta que LocalStack responda (máx. 30 intentos):
+```bash
+curl -s "http://localhost:4566/_localstack/health"
+```
+
+---
+
+## 🔄 Pipelines de GitHub Actions
+
+### Pipeline CI — Validación en Pull Requests
+
+**Trigger:** Pull Request hacia `main` con cambios en archivos `.tf`, `.tfvars` o workflows.
+
+| Job | Descripción |
+|-----|-------------|
+| `validate` | Verifica formato (`fmt`), inicializa con backend S3 y valida sintaxis |
+| `plan` | Genera plan para `dev` y `staging` en paralelo usando LocalStack |
+| `comment-plan` | Publica el plan como comentario en el PR |
+
+```yaml
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '**.tf'
+      - '**.tfvars'
+```
+
+**Punto clave:** LocalStack corre como un *service container* dentro del runner de GitHub Actions:
 ```yaml
 services:
   localstack:
@@ -25,233 +127,173 @@ services:
       - 4566:4566
     options: >-
       --health-cmd "curl -f http://localhost:4566/_localstack/health || exit 1"
-      --health-interval 10s
-      --health-retries 5
-```
-
-Esto permite que `terraform init`, `plan` y `apply` funcionen igual que contra AWS real, pero sin costos ni credenciales reales.
-
-### S3 como Terraform Backend
-
-```
-LocalStack simula S3 → Terraform guarda estado ahí → CI/CD lee/escribe ese estado → sin costos reales
-```
-
-Beneficios: estado compartido entre jobs, versionado automático, recuperación ante fallos.
-
-### Terraform Workspaces por ambiente
-
-Cada ambiente (`dev`, `staging`, `prod`) vive en su propio workspace con su propio archivo de estado aislado:
-
-```bash
-terraform workspace select dev || terraform workspace new dev
-terraform apply -var-file="environments/dev.tfvars"
 ```
 
 ---
 
-## Estructura de Workflows
+### Pipeline CD — Despliegue Automático
 
-| Workflow | Trigger | Qué hace |
-|----------|---------|----------|
-| `terraform-ci.yml` | PR hacia `main` (cambios en `.tf`/`.tfvars`) | validate + fmt-check + plan (dev y staging en paralelo) |
-| `terraform-cd.yml` | Push a `main` o manual | deploy dev → staging automático, prod solo manual |
-| `terraform-destroy.yml` | Solo manual, requiere escribir "DESTROY" | teardown controlado por ambiente |
+**Trigger:** Push a `main` con cambios en `.tf` / `.tfvars`, o ejecución manual.
 
-### Protección de producción en el pipeline CD
+| Job | Ambiente | Trigger |
+|-----|----------|---------|
+| `deploy-dev` | development | Automático al mergear |
+| `deploy-staging` | staging | Automático, después de dev |
+| `deploy-prod` | production | Solo manual (`workflow_dispatch`) |
 
 ```yaml
-deploy-prod:
-  needs: deploy-staging
-  if: github.event_name == 'workflow_dispatch'
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment: { type: choice, options: [dev, staging, prod] }
+      action:      { type: choice, options: [plan, apply, destroy] }
 ```
 
-`prod` nunca se despliega automáticamente — requiere trigger manual explícito.
+Cada ambiente usa su propio **Terraform Workspace**:
+```bash
+terraform workspace select dev || terraform workspace new dev
+terraform apply -var-file="environments/dev.tfvars" -auto-approve
+```
 
 ---
 
-## Configuración del Backend S3 con LocalStack
+### Pipeline Destroy — Limpieza Controlada
 
-El `terraform init` en CI requiere varios flags específicos para LocalStack:
+**Trigger:** Solo manual con confirmación explícita.
+
+```yaml
+on:
+  workflow_dispatch:
+    inputs:
+      environment: { type: choice, options: [dev, staging, prod] }
+      confirm:     { description: 'Escriba "DESTROY" para confirmar' }
+```
+
+El pipeline valida la confirmación antes de ejecutar cualquier acción:
+```bash
+if [ "${{ github.event.inputs.confirm }}" != "DESTROY" ]; then
+  echo "Confirmación incorrecta"
+  exit 1
+fi
+```
+
+---
+
+## 🌍 Variables por Ambiente
+
+| Variable | dev | staging | prod |
+|----------|-----|---------|------|
+| `replica_count` | 1 | 2 | 3 |
+| `memory_limit` | 256 MB | 512 MB | 1024 MB |
+| `enable_monitoring` | false | true | true |
+| `backup_enabled` | false | true | true |
+| Puerto vote | 8080 | 8081 | 80 |
+
+---
+
+## 🔐 Secrets de GitHub Actions
+
+Configurados en **Settings → Secrets and variables → Actions**:
+
+| Secret | Descripción |
+|--------|-------------|
+| `DEV_DB_PASSWORD` | Password de base de datos para desarrollo |
+| `STAGING_DB_PASSWORD` | Password de base de datos para staging |
+| `PROD_DB_PASSWORD` | Password de base de datos para producción |
+
+> Las credenciales de LocalStack (`test` / `test`) no necesitan secret ya que no son sensibles.
+
+---
+
+## 🚀 Flujo de Trabajo Completo
+
+```
+1. Iniciar LocalStack localmente
+   └── docker-compose -f docker-compose.localstack.yml up -d
+
+2. Configurar S3 backend
+   └── ./scripts/setup-localstack.sh
+
+3. Crear feature branch y hacer cambios
+   └── git checkout -b feature/nueva-funcionalidad
+
+4. Abrir Pull Request
+   └── GitHub Actions CI ejecuta automáticamente:
+       ├── Validación de formato y sintaxis
+       ├── Plan para dev y staging
+       └── Comentario con el plan en el PR
+
+5. Merge a main
+   └── GitHub Actions CD ejecuta automáticamente:
+       ├── Despliega a development
+       └── Despliega a staging
+
+6. Despliegue a producción (manual)
+   └── gh workflow run terraform-cd.yml -f environment=prod -f action=apply
+```
+
+---
+
+## 🛠️ Comandos Útiles
 
 ```bash
-terraform init \
-  -backend-config="endpoints={s3=\"http://localhost:4566\",sts=\"http://localhost:4566\",iam=\"http://localhost:4566\"}" \
-  -backend-config="access_key=test" \
-  -backend-config="secret_key=test" \
-  -backend-config="skip_credentials_validation=true" \
-  -backend-config="skip_metadata_api_check=true" \
-  -backend-config="skip_region_validation=true" \
-  -backend-config="skip_requesting_account_id=true" \
-  -backend-config="use_path_style=true" \
-  -reconfigure
-```
-
----
-
-## Errores Reales Encontrados y Debuggeados
-
-Estos son los errores que aparecieron durante la implementación, documentados tal como ocurrieron.
-
----
-
-### 1. `skip_requesting_account_id` no es un argumento válido del backend
-
-**Error:**
-```
-Error: Invalid backend configuration argument
-The backend configuration argument "skip_requesting_account_id" given on
-the command line is not expected for the selected backend type.
-```
-
-**Causa:** Este flag fue introducido en Terraform 1.6.1. El proyecto usaba `TF_VERSION: 1.6.0`.
-
-**Solución:** Actualizar a `TF_VERSION: 1.9.8` en los tres workflows.
-
----
-
-### 2. `force_path_style` deprecated
-
-**Warning:**
-```
-Warning: Deprecated Parameter
-The parameter "force_path_style" is deprecated. Use parameter "use_path_style" instead.
-```
-
-**Causa:** El parámetro fue renombrado en versiones recientes del provider AWS de Terraform.
-
-**Solución:** Reemplazar `force_path_style=true` por `use_path_style=true` en todos los `terraform init` y en `backend.tf`.
-
----
-
-### 3. Error de AWS account ID al inicializar (STS/IAM 403)
-
-**Error:**
-```
-Error: Retrieving AWS account details: AWS account ID not previously found
-* retrieving caller identity from STS: operation error STS: GetCallerIdentity,
-  StatusCode: 403, api error InvalidClientTokenId
-* retrieving account information via iam:ListRoles,
-  StatusCode: 403, api error InvalidClientTokenId
-```
-
-**Causa:** Terraform intenta resolver el account ID consultando STS e IAM. Los endpoints por defecto apuntan a AWS real, que rechaza las credenciales `test`/`test` de LocalStack.
-
-**Solución:** Agregar los endpoints de STS e IAM al flag `-backend-config` de `terraform init`:
-
-```bash
--backend-config="endpoints={s3=\"http://localhost:4566\",sts=\"http://localhost:4566\",iam=\"http://localhost:4566\"}"
-```
-
-Y en `backend.tf`:
-```hcl
-endpoints = {
-  s3  = "http://localhost:4566"
-  sts = "http://localhost:4566"
-  iam = "http://localhost:4566"
-}
-```
-
----
-
-### 4. Secretos detectados por GitGuardian en el historial de git
-
-**Error en el PR:**
-```
-Detected hardcoded secrets in your pull request
-Generic Password → terraform.tfvars
-Generic Terraform Variable Secret → examples/simple-webapp/variables.tf
-Generic Password → terraform.tfstate.backup
-```
-
-**Causa:** Tres archivos con información sensible fueron commiteados al repo:
-- `terraform.tfvars` contenía `database_password = "postgres123"`
-- `examples/simple-webapp/variables.tf` tenía `default = "dev_password_123"`
-- `terraform.tfstate.backup` almacena el estado real de la infraestructura (incluye outputs sensibles)
-
-**Solución:**
-- Eliminar el `default` del `database_password` en variables de ejemplo (usar `sensitive = true` sin valor hardcodeado)
-- Agregar a `.gitignore`: `*.tfstate`, `*.tfstate.*`, `*.tfvars`, `tfplan`
-- Limpiar el historial de git con `git filter-branch` para eliminar esos archivos de todos los commits
-
----
-
-### 5. Definiciones duplicadas en Terraform
-
-**Error:**
-```
-Error: Duplicate output definition
-output "application_urls" was already defined at outputs-docker.tf:2
-
-Error: Duplicate resource "time_static" configuration
-resource "time_static" "generated_at" already declared at main.tf:5
-```
-
-**Causa:** Al agregar el módulo `docker-webapp`, quedaron archivos `.tf` legacy en el directorio raíz que ya habían sido reemplazados:
-
-| Archivo legacy | Reemplazado por |
-|---|---|
-| `outputs-docker.tf` | `outputs.tf` (usa `module.docker_webapp.*`) |
-| `time.tf` | El recurso ya estaba en `main.tf` |
-| `docker_stack.tf` | `modules/docker-webapp/main.tf` (además usaba atributo `image_id` inválido para el provider `calxus/docker`) |
-
-**Solución:** Mover los tres archivos a `archive/` con extensión `.legacy.tf` (Terraform ignora archivos que no terminan en `.tf`).
-
----
-
-### 6. PR sin historial común con `main`
-
-**Error en GitHub:**
-```
-There isn't anything to compare.
-main and feature/day27-cicd-localstack are entirely different commit histories.
-```
-
-**Causa:** Al usar `git filter-branch --all` para limpiar secretos del historial, se reescribieron **todos** los branches locales incluyendo `main`. Pero solo se hizo force-push del feature branch, no de `main`. El remote `main` mantuvo el historial original, creando dos historiales incompatibles.
-
-**Solución:** Crear un branch nuevo desde `origin/main` y copiar los archivos del feature branch:
-
-```bash
-git fetch origin
-git checkout -b feature/day27-clean origin/main
-git checkout feature/day27-cicd-localstack -- .
-# remover archivos que no deben ir en git
-git rm --cached terraform.tfstate terraform.tfstate.backup terraform.tfvars tfplan
-git commit && git push origin feature/day27-clean
-```
-
----
-
-## Comandos Útiles
-
-```bash
-# Levantar LocalStack localmente
-docker-compose -f voting-app/roxs-voting-app/terraform/docker-compose.localstack.yml up -d
-
-# Crear bucket de estado
-./scripts/setup-localstack.sh
+# Iniciar / parar LocalStack
+docker-compose -f docker-compose.localstack.yml up -d
+docker-compose -f docker-compose.localstack.yml down
 
 # Verificar estado de LocalStack
-curl http://localhost:4566/_localstack/health | jq .
+curl http://localhost:4566/_localstack/health
 
-# Ver estado almacenado en S3
+# Ver buckets S3 en LocalStack
+aws --endpoint-url=http://localhost:4566 s3 ls
+
+# Ver contenido del bucket de estado
 aws --endpoint-url=http://localhost:4566 s3 ls s3://terraform-state-roxs/ --recursive
 
-# Gestionar workflows con GitHub CLI
+# Inicializar Terraform con backend S3 local
+terraform init \
+  -backend-config="endpoint=http://localhost:4566" \
+  -backend-config="access_key=test" \
+  -backend-config="secret_key=test"
+
+# Gestión de workflows con GitHub CLI
 gh workflow list
-gh run list --workflow=terraform-ci.yml
+gh run list --workflow=terraform-cd.yml
 gh workflow run terraform-destroy.yml -f environment=dev -f confirm=DESTROY
 ```
 
 ---
 
-## Lo Aprendido
+## 🔍 Troubleshooting
 
-- **LocalStack como service container** en GitHub Actions: permite CI/CD real contra AWS simulado sin costos
-- **S3 backend** para estado compartido entre jobs del pipeline
-- **Endpoints explícitos para STS e IAM** son necesarios cuando LocalStack maneja la autenticación
-- **`use_path_style`** reemplaza a `force_path_style` en versiones recientes de Terraform
-- **`skip_requesting_account_id`** requiere Terraform >= 1.6.1
-- **`git filter-branch --all` reescribe todos los branches** — solo hacer force-push de lo que se reescribió
-- Los archivos `.tfstate`, `.tfvars` y binarios de providers **nunca deben commitearse**
-- Los archivos `.tf` legacy deben ir a una carpeta `archive/` con extensión `.legacy.tf` para que Terraform los ignore
+| Error | Causa | Solución |
+|-------|-------|----------|
+| `LocalStack not ready` | Container no arrancó | Verificar `docker ps` y health endpoint |
+| `S3 bucket not found` | Bucket no creado | Ejecutar `setup-localstack.sh` manualmente |
+| `Backend initialization failed` | Endpoint incorrecto | Verificar `-backend-config="endpoint=http://localhost:4566"` |
+| `Workspace doesn't exist` | Workspace no creado | Usar `terraform workspace select $ENV \|\| terraform workspace new $ENV` |
+| `Port already in use` | Puerto 4566 ocupado | `docker stop $(docker ps -q --filter "publish=4566")` |
+
+---
+
+## 💡 Buenas Prácticas
+
+- **Protección de ramas:** Requerir PR reviews y status checks antes de mergear a `main`
+- **Ambientes:** `dev` sin restricciones → `staging` con reviewers opcionales → `prod` solo manual
+- **Persistencia:** Habilitar `PERSISTENCE=1` en LocalStack para no perder datos entre reinicios
+- **Secrets:** Nunca hardcodear credenciales reales; usar `test`/`test` solo para LocalStack
+- **LocalStack es solo para desarrollo:** Para producción real, usar AWS con credenciales reales
+
+---
+
+## 📚 Lo Aprendido
+
+- Integración de **LocalStack** como simulador de AWS en pipelines de CI/CD
+- Configuración de **S3 como backend remoto** para el estado de Terraform
+- Uso de **GitHub Actions service containers** para correr dependencias en los runners
+- **Terraform Workspaces** para gestionar múltiples ambientes desde un mismo código
+- Estrategia de **promotion entre ambientes**: dev → staging → prod con distintos niveles de aprobación
+- **Secrets management** y separación de configuración por ambiente
+- Pipelines de **destroy controlado** con confirmación explícita

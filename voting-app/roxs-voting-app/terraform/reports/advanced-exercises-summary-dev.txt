@@ -5,7 +5,7 @@
 Student: David Britto
 Project: roxs-votingapp
 Environment: dev
-Generated: 2026-03-15T20:06:48Z
+Generated: 2026-03-27T21:21:25Z
     
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📊 EXERCISE 1: Multi-Environment Configuration System
@@ -34,8 +34,8 @@ Checks Performed:
     ✅ resource names unique
     
 Application Runtime:
-- Memory: 1024 MB
-- CPU: 2 cores
+- Memory: 512 MB
+- CPU: 1 cores
 - Memory/CPU Ratio: 512 (valid range: 256-2048)
     
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

@@ -3,7 +3,7 @@ COST ESTIMATION REPORT
     
 Application: roxs-votingapp
 Environment: dev
-Generated: 2026-03-15T20:06:48Z
+Generated: 2026-03-27T21:21:25Z
     
 Current Environment Costs:
 --------------------------

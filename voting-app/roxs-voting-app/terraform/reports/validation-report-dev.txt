@@ -2,13 +2,13 @@ VALIDATION REPORT
 =================
     
 Environment: dev
-Timestamp: 2026-03-15T20:06:48Z
+Timestamp: 2026-03-27T21:21:25Z
     
 Application Configuration:
 --------------------------
 Name: voting-app
-Memory: 1024 MB
-CPU: 2 cores
+Memory: 512 MB
+CPU: 1 cores
 Memory/CPU Ratio: 512
 
 Validation Results:
@@ -22,6 +22,6 @@ Overall Status: ✅ PASSED
     
 Features Status:
 ----------------
-✅ Monitoring
-✅ Backup
+❌ Monitoring
+❌ Backup
 ✅ Logging
