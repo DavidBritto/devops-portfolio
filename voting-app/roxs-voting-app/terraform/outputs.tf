@@ -1,11 +1,14 @@
 output "application_urls" {
-  description = "URLs de acceso a cada servicio (sin credenciales)"
-  value       = module.docker_webapp.application_urls
+  description = "URLs de acceso a cada servicio"
+  value = {
+    vote   = module.vote.service_urls
+    result = module.result.service_urls
+  }
 }
 
 output "postgres_connection_string" {
   description = "Connection string completa de PostgreSQL"
-  value       = module.docker_webapp.postgres_connection_string
+  value       = module.database.connection_string
   sensitive   = true
 }
 
