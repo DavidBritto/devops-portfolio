@@ -1,0 +1,110 @@
+name: Sync progress to Obsidian Vault
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "daily-exercises/**/*.md"
+      - "voting-app/**/*.md"
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout devops-portfolio
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Checkout obsidian-vault
+        uses: actions/checkout@v4
+        with:
+          repository: DavidBritto/obsidian-vault
+          token: ${{ secrets.VAULT_PAT }}
+          path: vault
+
+      - name: Detect and copy changed markdown files
+        run: |
+          # Archivos .md modificados en este push
+          CHANGED=$(git diff --name-only HEAD~1 HEAD -- "daily-exercises/**/*.md" "voting-app/**/*.md" 2>/dev/null || \
+                    git diff --name-only HEAD -- "daily-exercises/**/*.md" "voting-app/**/*.md")
+
+          echo "Archivos modificados:"
+          echo "$CHANGED"
+
+          for FILE in $CHANGED; do
+            [ -f "$FILE" ] || continue
+
+            BASENAME=$(basename "$FILE")
+            DIRNAME=$(dirname "$FILE")
+
+            # Mapeo por nombre de archivo a carpeta del vault
+            if [[ "$BASENAME" =~ docker|compose ]]; then
+              DEST="vault/devops/docker"
+            elif [[ "$BASENAME" =~ terraform ]]; then
+              DEST="vault/devops/terraform"
+            elif [[ "$BASENAME" =~ ansible ]]; then
+              DEST="vault/devops/ansible"
+            elif [[ "$BASENAME" =~ kubernetes|k8s|cluster ]]; then
+              DEST="vault/devops/kubernetes"
+            elif [[ "$BASENAME" =~ ci|cd|github-actions|pipeline|self-hosted ]]; then
+              DEST="vault/devops/ci-cd"
+            elif [[ "$BASENAME" =~ monitor|logging|alerting|prometheus|grafana ]]; then
+              DEST="vault/devops/monitoring"
+            elif [[ "$BASENAME" =~ linux|ubuntu|bash|shell ]]; then
+              DEST="vault/devops/linux"
+            elif [[ "$BASENAME" =~ scripting|script ]]; then
+              DEST="vault/devops/scripting"
+            elif [[ "$BASENAME" =~ git ]]; then
+              DEST="vault/devops/linux"
+            elif [[ "$DIRNAME" =~ voting-app/terraform ]]; then
+              DEST="vault/devops/terraform"
+            elif [[ "$DIRNAME" =~ voting-app ]]; then
+              DEST="vault/devops/portfolio/voting-app"
+            else
+              DEST="vault/devops/portfolio/semanas"
+            fi
+
+            mkdir -p "$DEST"
+
+            # Agregar frontmatter si el archivo no lo tiene
+            if ! head -1 "$FILE" | grep -q "^---"; then
+              # Detectar topic desde el destino
+              TOPIC=$(echo "$DEST" | sed 's|vault/||')
+              TAGS=$(echo "$DEST" | sed 's|vault/devops/||' | tr '/' ', ')
+
+              TMPFILE=$(mktemp)
+              cat > "$TMPFILE" <<FRONTMATTER
+---
+tags: [devops, log, ${TAGS}]
+type: log
+topic: ${TOPIC}
+source: devops-portfolio
+created: $(date +%Y-%m-%d)
+---
+
+FRONTMATTER
+              cat "$FILE" >> "$TMPFILE"
+              cp "$TMPFILE" "$DEST/$BASENAME"
+              rm "$TMPFILE"
+            else
+              cp "$FILE" "$DEST/$BASENAME"
+            fi
+
+            echo "✓ $FILE → $DEST/$BASENAME"
+          done
+
+      - name: Commit and push to vault
+        working-directory: vault
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add .
+          if git diff --cached --quiet; then
+            echo "Sin cambios para commitear"
+          else
+            git commit -m "sync: devops-portfolio → vault ($(date +%Y-%m-%d))"
+            git push
+          fi
