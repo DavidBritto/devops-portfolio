@@ -56,9 +56,11 @@ product.md
 structure.md
 tech.md
 
-# Ignorar Claude
+# Ignorar Claude y otros agentes de IA
 /home/david/git/devops-porfolio/CLAUDE.md
 CLAUDE.md
+AGENTS.md
+CLAUDE.MDD
 
 # Estado local de Terraform - NUNCA commitear
 terraform.tfstate
