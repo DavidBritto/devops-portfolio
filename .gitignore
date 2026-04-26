@@ -78,3 +78,10 @@ terraform.tfvars
 # Planes
 *.tfplan
 tfplan
+
+#--- Archivos teoricos y de ejecucion ---#
+README-ejecucion.md
+README-teoria.md
+
+#--- Teoria diaria ---#
+voting-app/roxs-voting-app/teoria diaria/
