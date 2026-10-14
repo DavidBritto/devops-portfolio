@@ -24,8 +24,14 @@ Thumbs.db
 *.log
 *.log*
 
-# --- Archivos de variables de entorno ---
+# --- Archivos de variables de entorno y secretos ---
 .env
+*.env
+*.env.*
+!*.env.example
+arc-secrets.env
+*.pem
+*.key
 
 # ---Archivos de Terraform---
 .terraform/
@@ -44,23 +50,14 @@ docker-compose.dev.yml
 .vscode/tasks.json
 .vscode/launch.json
 
-# Ignorar archivos de configuración de MCP (GitHub Copilot)
+# --- Configuraciones locales y temporales ---
 .vscode/mcp.json
 .vscode/mcp.lock.json
-
-# Ignorar archivos de amazonq
-
-.amazonq/rules/memory-bank
 guidelines.md
 product.md
 structure.md
 tech.md
-
-# Ignorar Claude y otros agentes de IA
-/home/david/git/devops-porfolio/CLAUDE.md
-CLAUDE.md
 AGENTS.md
-CLAUDE.MDD
 
 # Estado local de Terraform - NUNCA commitear
 terraform.tfstate
@@ -84,4 +81,9 @@ README-ejecucion.md
 README-teoria.md
 
 #--- Teoria diaria ---#
-voting-app/roxs-voting-app/teoria diaria/
+daily-exercises/teoria diaria
+
+#--- Local Agent & Skill Metadata ---#
+.atl/
+.kiro/
+.engram/

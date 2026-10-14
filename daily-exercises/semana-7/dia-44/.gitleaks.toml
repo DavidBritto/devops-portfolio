@@ -1,0 +1,15 @@
+title = "Gitleaks Config for DevOps Portfolio"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Permitir placeholders de ejemplo"
+paths = [
+  '''\.example$''',
+  '''mock-''',
+]
+regexes = [
+  '''EXAMPLE_KEY''',
+  '''PLACEHOLDER''',
+]

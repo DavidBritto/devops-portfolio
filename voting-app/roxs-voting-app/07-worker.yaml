@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker
+  namespace: voting-app
+  labels:
+    app: worker
+    tier: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: worker
+  template:
+    metadata:
+      labels:
+        app: worker
+        tier: backend
+    spec:
+      containers:
+      - name: worker
+        image: worker:local
+        imagePullPolicy: IfNotPresent
+        envFrom:
+        - configMapRef:
+            name: app-config
+        - secretRef:
+            name: db-credentials
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 3001
+          initialDelaySeconds: 20
+          periodSeconds: 10
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "300m"

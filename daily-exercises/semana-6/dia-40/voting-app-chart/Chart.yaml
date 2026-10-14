@@ -1,0 +1,8 @@
+apiVersion: v2
+name: voting-app
+description: Production-ready Helm chart for the 5-tier Voting App architecture
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+maintainers:
+  - name: DevOps Engineer

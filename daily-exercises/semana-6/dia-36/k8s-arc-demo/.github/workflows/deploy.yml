@@ -1,0 +1,51 @@
+name: Deploy con ARC
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: mi-runners
+
+    steps:
+    - name: Checkout codigo
+      uses: actions/checkout@v4
+
+    - name: Ver info del runner
+      run: |
+        echo "Ejecutandose en runner ARC"
+        echo "Hostname: $(hostname)"
+        echo "Usuario: $(whoami)"
+        kubectl version --client || true
+
+    - name: Setup kubectl si falta
+      run: |
+        if ! command -v kubectl >/dev/null 2>&1; then
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/
+        fi
+        kubectl version --client
+
+    - name: Verificar cluster
+      run: |
+        echo "Verificando conexion a Kubernetes..."
+        kubectl get nodes
+        kubectl get namespaces
+
+    - name: Aplicar manifiestos
+      run: |
+        echo "Desplegando aplicacion..."
+        kubectl apply -f k8s/deployment.yaml
+        kubectl apply -f k8s/service.yaml
+
+    - name: Esperar despliegue
+      run: |
+        kubectl rollout status deployment/arc-demo-app --timeout=300s
+
+    - name: Verificar resultado
+      run: |
+        kubectl get pods -l app=arc-demo
+        kubectl get service arc-demo-service

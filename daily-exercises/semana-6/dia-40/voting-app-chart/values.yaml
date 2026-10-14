@@ -1,0 +1,40 @@
+namespace: voting-app
+
+replicaCount:
+  vote: 2
+  result: 2
+  worker: 1
+
+images:
+  vote: dockersamples/examplevotingapp_vote:before
+  result: dockersamples/examplevotingapp_result:before
+  worker: dockersamples/examplevotingapp_worker:before
+  redis: redis:alpine
+  db: postgres:15-alpine
+
+resources:
+  vote:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 128Mi
+  result:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 128Mi
+  worker:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+service:
+  votePort: 80
+  resultPort: 80

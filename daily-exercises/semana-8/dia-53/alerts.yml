@@ -1,0 +1,29 @@
+groups:
+  - name: voting_app_alerts
+    rules:
+      - alert: HighHttpErrorRate
+        expr: sum(rate(http_requests_total{status=~"5.."}[2m])) / sum(rate(http_requests_total[2m])) * 100 > 5
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Tasa elevada de errores HTTP 5xx (> 5%)"
+          description: "El servicio vote esta respondiendo con errores 5xx a los usuarios."
+
+      - alert: RedisMemoryHigh
+        expr: redis_memory_used_bytes / redis_memory_max_bytes * 100 > 85
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Uso critico de memoria en Redis (> 85%)"
+          description: "La memoria de Redis se esta agotando debido a una alta acumulacion de votos en cola."
+
+      - alert: NodeHighCpu
+        expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[2m])) * 100) > 80
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Uso de CPU superior al 80%"
+          description: "La CPU de la instancia de infraestructura esta sobrecargada."

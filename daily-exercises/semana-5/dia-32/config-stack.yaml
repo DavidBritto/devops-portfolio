@@ -1,0 +1,92 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: webapp-config
+data:
+  environment: "development"
+  log_level: "debug"
+  default.conf: |
+    server {
+      listen 80;
+      server_name localhost;
+      location / {
+        return 200 "ok from nginx with configmap volume\n";
+        add_header Content-Type text/plain;
+      }
+    }
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: webapp-secrets
+type: Opaque
+stringData:
+  api_key: "demo-api-key-no-produccion"
+  db_password: "demo-password-no-produccion"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: webapp
+  template:
+    metadata:
+      labels:
+        app: webapp
+    spec:
+      containers:
+        - name: web
+          image: nginx:latest
+          ports:
+            - containerPort: 80
+          env:
+            - name: ENVIRONMENT
+              valueFrom:
+                configMapKeyRef:
+                  name: webapp-config
+                  key: environment
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: webapp-config
+                  key: log_level
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: webapp-secrets
+                  key: api_key
+          volumeMounts:
+            - name: nginx-snippet
+              mountPath: /etc/nginx/conf.d
+              readOnly: true
+            - name: secret-files
+              mountPath: /etc/app-secrets
+              readOnly: true
+      volumes:
+        - name: nginx-snippet
+          configMap:
+            name: webapp-config
+            items:
+              - key: default.conf
+                path: default.conf
+        - name: secret-files
+          secret:
+            secretName: webapp-secrets
+            defaultMode: 0400
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webapp-service
+spec:
+  type: NodePort
+  selector:
+    app: webapp
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 30200

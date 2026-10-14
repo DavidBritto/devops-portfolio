@@ -1,0 +1,15 @@
+# daily-exercises/semana-6/dia-37: Kustomize Multi-Environment Setup
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base
+
+namespace: dev
+
+commonLabels:
+  environment: development
+
+patchesStrategicMerge:
+  - replica-patch.yaml

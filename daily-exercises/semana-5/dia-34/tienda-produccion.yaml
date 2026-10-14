@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: tienda-prod
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+        tipo: web
+    spec:
+      containers:
+      - name: web
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: database
+  namespace: tienda-prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: database
+  template:
+    metadata:
+      labels:
+        app: database
+        tipo: db
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:8.0
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: "supersecret789"
+        - name: MYSQL_DATABASE
+          value: "tienda_prod"
+        ports:
+        - containerPort: 3306
+        resources:
+          requests:
+            memory: "512Mi"
+          limits:
+            memory: "1Gi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+  namespace: tienda-prod
+spec:
+  selector:
+    app: frontend
+  ports:
+  - port: 80
+    nodePort: 30210
+  type: NodePort
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: database-service
+  namespace: tienda-prod
+spec:
+  selector:
+    app: database
+  ports:
+  - port: 3306
+  type: ClusterIP

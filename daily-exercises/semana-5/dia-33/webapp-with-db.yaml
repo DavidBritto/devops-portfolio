@@ -1,0 +1,107 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mysql-app-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: mysql-app-storage
+  hostPath:
+    path: /tmp/mysql-app-data
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pvc-app
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: mysql-app-storage
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql-app
+  template:
+    metadata:
+      labels:
+        app: mysql-app
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:8.0
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: "rootpass123"
+        - name: MYSQL_DATABASE
+          value: "webapp"
+        volumeMounts:
+        - name: mysql-data
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: mysql-data
+        persistentVolumeClaim:
+          claimName: mysql-pvc-app
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-app-service
+spec:
+  selector:
+    app: mysql-app
+  ports:
+  - port: 3306
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp-with-db
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: webapp-with-db
+  template:
+    metadata:
+      labels:
+        app: webapp-with-db
+    spec:
+      containers:
+      - name: webapp
+        image: httpd:2.4
+        env:
+        - name: DB_HOST
+          value: "mysql-app-service"
+        - name: DB_NAME
+          value: "webapp"
+        volumeMounts:
+        - name: web-content
+          mountPath: /usr/local/apache2/htdocs
+      volumes:
+      - name: web-content
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webapp-service
+spec:
+  selector:
+    app: webapp-with-db
+  ports:
+  - port: 80
+    nodePort: 30300
+  type: NodePort

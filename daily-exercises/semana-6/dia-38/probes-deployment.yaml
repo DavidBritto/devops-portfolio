@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: resilient-voting-app
+  namespace: voting-app
+  labels:
+    app: vote-probes
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: vote-probes
+  template:
+    metadata:
+      labels:
+        app: vote-probes
+    spec:
+      containers:
+        - name: vote
+          image: dockersamples/examplevotingapp_vote:before
+          ports:
+            - containerPort: 80
+              name: http
+          startupProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            periodSeconds: 5
+            timeoutSeconds: 2
+            successThreshold: 1
+            failureThreshold: 2
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "sleep 10"]
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi
